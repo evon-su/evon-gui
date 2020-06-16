@@ -1,4 +1,5 @@
 cycler==0.10.0
+dependency==0.0.3
 gunicorn==20.0.4
 kiwisolver==1.2.0
 matplotlib==3.2.1
