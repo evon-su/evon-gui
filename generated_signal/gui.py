@@ -79,10 +79,10 @@ class FootDataOperatingPlatform(tk.Tk):
             self.d.is_run = True
 
             # Line Plot for first animate:
-            if not self.is_ani:
+            if self.plot_way == 'line_plot':
                 print('animating...')
-                if self.plot_way == 'line_plot':
-                    self.lineplot_frame.d = self.d
+                self.lineplot_frame.d = self.d
+                if not self.is_ani:
                     print('line plot')
                     self.lineplot_frame.animate()
             # Illustrated Plot:

@@ -34,7 +34,7 @@ def get_YlOrRd():
         colormap_int[i, 1] = np.int_(np.round(cm.YlOrRd(i)[1] * 255.0))
         colormap_int[i, 2] = np.int_(np.round(cm.YlOrRd(i)[2] * 255.0))
 
-    np.savetxt("YlOrRd_float.txt", colormap_float, fmt="%f", delimiter=' ', newline='\n')
+    #np.savetxt("YlOrRd_float.txt", colormap_float, fmt="%f", delimiter=' ', newline='\n')
     np.savetxt("YlOrRd_int.txt", colormap_int, fmt="%d", delimiter=' ', newline='\n')
 
     return colormap_int

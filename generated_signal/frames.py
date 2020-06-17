@@ -14,7 +14,7 @@ class TitleFrame(tk.Frame):
     def __init__(self, container):
         super().__init__(container)
         self.configure(bg='white')
-        self.title_ = ttk.Label(self, text='Plantar Data Acquisition and Visualization',
+        self.title_ = ttk.Label(self, text='Plantar Data Acquisition and Visualization (DEMO version: Without arduino acquisition and database)',
                                 padding=(10, 10, 10, 10), background='darkslategrey', foreground='white')
         self.title_.config(font=('Helvetica', 20, 'bold'), anchor='center')
 
@@ -155,11 +155,14 @@ class LinePlotFrame(tk.Frame):
         self.canvas.get_tk_widget().pack(side=tk.LEFT, fill='x', expand=True, anchor='w')
 
     def update_(self, i):
+
         self.ax1.clear()
         self.ax2.clear()
         self.ax1.set_ylim(0, 0.8)
         self.ax2.set_ylim(0, 0.8)
         try:
+            if i % 20 == 0:
+                print('line plot time, i=', i, self.d.dqs[1])
             for plot_i, color in zip(range(self.d.num_sensors // 2), self.color):
                 self.ax1.plot(self.d.dqs[1], self.d.dqs[plot_i + 2], lw=1.5,
                               label=f'a{plot_i}', marker=None, color=color)
@@ -262,7 +265,6 @@ class IllustratedFrame(tk.Frame):
         self.canvas_foot.delete(self.init_circle_container)
         sleep(0.2)
         count = 0
-
         time_ball = self.canvas_foot.create_oval(
             self.circle_to_coord(self.d.da_contain[1] * 640 / self.d.max_runtime, 410, 12),
             fill='royalblue', outline='white'
@@ -295,6 +297,11 @@ class IllustratedFrame(tk.Frame):
                 )
 
             sleep(0.1)
+        else:
+            try:
+                self.canvas_foot.delete(time_ball)
+            except:
+                print('no time_ball to delete')
 
             #
             if count % 350 == 0:

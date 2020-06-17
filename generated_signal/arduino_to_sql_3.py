@@ -94,7 +94,9 @@ class Daq:
         da_contain.append(p)
         self.dqs[0].append(t)
         self.dqs[1].append(p)
-        freq = 10  # rpm
+        print('p: ', p)
+        #print(self.dqs[1])
+        freq = 50  # rpm
         for i in range(self.num_sensors):
             da = math.sin((2 * math.pi * p * freq)/60 + i*0.3)*0.5 + 0.5
             self.dqs[i + 2].append(da)
@@ -130,6 +132,7 @@ class Daq:
             except ValueError:
                 pass
             self.da_contain = self.read_arduino()
+            #print(self.da_contain)
             if self.da_contain[1] >= self.max_runtime:
                 self.close()
                 break
