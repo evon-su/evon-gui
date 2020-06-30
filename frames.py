@@ -7,8 +7,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
 import csv
 from time import sleep
-from skimage import draw, data
-import math
 
 
 class TitleFrame(tk.Frame):
@@ -197,13 +195,24 @@ class InfoFrame(tk.Frame):
                                   font='Georgia 10', relief='raised')
         self.rpm_label1 = ttk.Label(self, text='RPM: ', background='white')
         self.rpm_label2 = ttk.Label(self, textvariable=self.param_frame.rpm, background='white')
+        self.max_run_time_label1 = ttk.Label(self, text='Max Run Time: ', background='white')
+        self.max_run_time_label2 = ttk.Label(self, textvariable=self.param_frame.max_runtime, background='white')
+
         self.rpm_label1.config(font=('Georgia', 20))
         self.rpm_label2.config(font=('Georgia', 50))
-
+        self.max_run_time_label1.config(font=('Georgia', 20))
+        self.max_run_time_label2.config(font=('Georgia', 30))
         # label components pack
-        self.message.pack(side=tk.TOP, fill='x', anchor='nw', expand=True, pady=50)
-        self.rpm_label1.pack(side=tk.LEFT)
-        self.rpm_label2.pack(side=tk.LEFT)
+        # self.message.pack(side=tk.TOP, fill='x', anchor='nw', expand=True, pady=50)
+        # self.rpm_label1.pack(side=tk.LEFT)
+        # self.rpm_label2.pack(side=tk.TOP)
+        # self.max_run_time_label1.pack(side=tk.TOP)
+        # self.max_run_time_label2.pack(side=tk.TOP)
+        self.message.grid(row=0, column=0, columnspan=3)
+        self.rpm_label1.grid(row=2, column=0, sticky='w')
+        self.rpm_label2.grid(row=2, column=1, sticky='w')
+        self.max_run_time_label1.grid(row=3, column=0, sticky='w')
+        self.max_run_time_label2.grid(row=3, column=1, sticky='w')
 
     def get_real_time_rpm(self, d):
         while d.is_run:
@@ -264,13 +273,10 @@ class IllustratedFrame(tk.Frame):
         sleep(0.2)
         count = 0
 
-        time_ball = self.canvas_foot.create_oval(
-            self.circle_to_coord(self.d.da_contain[1] * 640 / self.d.max_runtime, 410, 12),
-            fill='royalblue', outline='white'
-        )
+        time_ball = None
+
         while self.d.is_run:
             count += 1
-            print(count, self.d.da_contain[1])
             for i, (cx, cy, r) in enumerate(self.center_radius_list):
                 left_ = self.canvas_foot.create_oval(
                     cx - r, cy - r, cx + r, cy + r,
@@ -288,22 +294,22 @@ class IllustratedFrame(tk.Frame):
 
             # plot time_ball
             if count % 10 == 0:
-                print('count%10', count)
                 self.canvas_foot.delete(time_ball)
-                time_ball = self.canvas_foot.create_oval(
-                    self.circle_to_coord(self.d.da_contain[1] * 640 / self.d.max_runtime, 410, 12),
+                time_ball = self.canvas_foot.create_rectangle(
+                    0, 410, self.d.da_contain[1] * 640 / self.d.max_runtime + 10, 425,
+                    #self.circle_to_coord(self.d.da_contain[1] * 640 / self.d.max_runtime, 410, 12),
                     fill='royalblue', outline='white'
                 )
-
             sleep(0.1)
 
-            #
+            # delete circle
             if count % 350 == 0:
-                print('count', count)
                 for item in self.init_circle_container:
                     self.canvas_foot.delete(item)
                 self.init_circle_container = []
 
+        else:
+            self.canvas_foot.delete(time_ball)
 
     @staticmethod
     def circle_to_coord(center_x, center_y, radius):

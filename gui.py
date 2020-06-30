@@ -1,18 +1,8 @@
 import tkinter as tk
-from tkinter import ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from arduino_to_sql_3 import Daq
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-import csv
 import threading
-import numpy as np
 from time import sleep
-import matplotlib.animation as animation
-from func import projectName_list
-import pandas as pd
 from frames import ParamFrame, FrontFrame, LinePlotFrame, InfoFrame, TitleFrame, BackFrame, IllustratedFrame
-from PIL import Image, ImageTk
 
 
 class FootDataOperatingPlatform(tk.Tk):
@@ -136,7 +126,7 @@ class FootDataOperatingPlatform(tk.Tk):
             self.back_frame = BackFrame(frame, frame_1, show_foot=True)
 
             self.back_frame.grid(row=0, column=0, sticky='W', padx=20)
-            self.info_frame.grid(row=0, column=2)
+            self.info_frame.grid(row=0, column=2, sticky='W')
             self.param_frame.grid(row=0, column=1, sticky='W')
             self.lineplot_frame.grid(row=1, column=0, columnspan=3)
 
@@ -145,8 +135,8 @@ class FootDataOperatingPlatform(tk.Tk):
 
             self.back_frame.grid(row=0, column=0, sticky='W', padx=20, pady=100)
             self.param_frame.grid(row=0, column=1, sticky='W', padx=100, pady=100)
-            self.illustrated_frame.grid(row=0, column=2, columnspan=2, padx=80, pady=100)
-            self.info_frame.grid(row=0, column=4, padx=100, sticky='E', pady=100)
+            self.illustrated_frame.grid(row=0, column=2, columnspan=2, padx=30, pady=100)
+            self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
     def line_plot_command(self):
         self.plot_way = 'line_plot'

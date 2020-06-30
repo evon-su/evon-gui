@@ -34,8 +34,8 @@ class Daq:
         self.sr = sr
         self.save_to_csv = save_to_csv
         # postgresql & arduino connection
-        self.conn = psycopg2.connect(database='plantar_data', user='postgres', password='3333', host='localhost')
-        self.cursor = self.conn.cursor()
+        # self.conn = psycopg2.connect(database='plantar_data', user='postgres', password='3333', host='localhost')
+        # self.cursor = self.conn.cursor()
         # self.uno1 = Arduino(self.com1)
         # self.uno1.setup_layout(arduino_param)
         # self.uno2 = Arduino(self.com2)

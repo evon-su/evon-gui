@@ -1,6 +1,5 @@
 # work in "(venv)" virtual environment
 # .\venv\Scripts\activate
-# using threading
 
 from pyfirmata2 import Arduino, util
 from time import sleep, time
@@ -8,7 +7,6 @@ from datetime import datetime, date
 import psycopg2
 from collections import deque
 import matplotlib.pyplot as plt
-import math
 import threading
 import csv
 from func import cal_rpm
