@@ -22,14 +22,14 @@ class TitleFrame(tk.Frame):
 
 
 class FrontFrame(tk.Frame):
-    def __init__(self, container, frame_2, frame_3, line_plot_command, illustrated_plot_command):
+    def __init__(self, container, frame_2, frame_3, line_plot_command, illustrated_plot_command, history_command):
         super().__init__(container)
         self.configure(bg='blue')
 
         self.frame_2 = frame_2
         self.frame_3 = frame_3
 
-        # Setting Frame
+        # Setting Frames
         self.figFrame = tk.Frame(self, padx=0, pady=0, bg='white')
         self.buttonFrame = tk.Frame(self, bg='white')
         self.figFrame.pack(side=tk.LEFT, padx=0, pady=0)
@@ -46,6 +46,10 @@ class FrontFrame(tk.Frame):
         # buttonFrame
         self.lineplot_button = ttk.Button(self.buttonFrame, text='Line Plot', command=line_plot_command, cursor='hand1')
         self.illustrate_button = ttk.Button(self.buttonFrame, text='Illustrated Plot', command=illustrated_plot_command, cursor='hand1')
+
+        self.history_data = ttk.Button(self.buttonFrame, text='History', command=history_command, cursor='hand1')
+
+        self.history_data.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
         self.lineplot_button.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
         self.illustrate_button.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
 
@@ -211,8 +215,8 @@ class InfoFrame(tk.Frame):
         self.message.grid(row=0, column=0, columnspan=3)
         self.rpm_label1.grid(row=2, column=0, sticky='w')
         self.rpm_label2.grid(row=2, column=1, sticky='w')
-        self.max_run_time_label1.grid(row=3, column=0, sticky='w')
-        self.max_run_time_label2.grid(row=3, column=1, sticky='w')
+        self.max_run_time_label1.grid(row=3, column=0, sticky='w', pady=10)
+        self.max_run_time_label2.grid(row=3, column=1, sticky='w', pady=10)
 
     def get_real_time_rpm(self, d):
         while d.is_run:

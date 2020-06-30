@@ -17,6 +17,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.frame_1 = tk.Frame(self)  # Greeting Frame
         self.frame_2 = tk.Frame(self)  # Line Plot Frame
         self.frame_3 = tk.Frame(self)  # Foot Plot Frame
+        self.frame_4 = tk.Frame(self)
 
         self.frame_1.configure(bg='white')
         self.frame_2.configure(bg='white')
@@ -26,7 +27,7 @@ class FootDataOperatingPlatform(tk.Tk):
 
         # frame_1
         self.frontFrame = FrontFrame(self.frame_1, self.frame_2, self.frame_3,
-                                     self.line_plot_command, self.illustrated_plot_command)
+                                     self.line_plot_command, self.illustrated_plot_command, self.history_command)
         self.frontFrame.pack(side=tk.TOP, expand=0, anchor='center', pady=150)
 
         # objects in frames
@@ -39,6 +40,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.frame_1.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
         self.frame_2.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
         self.frame_3.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
+        self.frame_4.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
 
         # frames
         self.frame_1.tkraise()
@@ -50,7 +52,6 @@ class FootDataOperatingPlatform(tk.Tk):
 
         # instance
         self.d = None
-
 
     def start_command(self):
         if not self.is_start:  # going to start
@@ -107,36 +108,7 @@ class FootDataOperatingPlatform(tk.Tk):
             self.is_start = False
             self.d.is_run = False
 
-    def gui_size(self):
-        ws = self.winfo_screenwidth()
-        hs = self.winfo_screenheight()
-        return f'{int(ws*0.99)}x{int(hs*2.1//3)}'
 
-    def back(self):
-        self.frame_1.tkraise()
-
-    def create_frame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
-                              frame_1, start_command):
-        self.param_frame = ParamFrame(frame, start_command)
-        self.info_frame = InfoFrame(frame, param_frame=self.param_frame)
-        self.lineplot_frame = LinePlotFrame(frame, d=None)
-        self.illustrated_frame = IllustratedFrame(frame, d=None)
-
-        if self.plot_way == 'line_plot':
-            self.back_frame = BackFrame(frame, frame_1, show_foot=True)
-
-            self.back_frame.grid(row=0, column=0, sticky='W', padx=20)
-            self.info_frame.grid(row=0, column=2, sticky='W')
-            self.param_frame.grid(row=0, column=1, sticky='W')
-            self.lineplot_frame.grid(row=1, column=0, columnspan=3)
-
-        elif self.plot_way == 'illustrated_plot':
-            self.back_frame = BackFrame(frame, frame_1, show_foot=False)
-
-            self.back_frame.grid(row=0, column=0, sticky='W', padx=20, pady=100)
-            self.param_frame.grid(row=0, column=1, sticky='W', padx=100, pady=100)
-            self.illustrated_frame.grid(row=0, column=2, columnspan=2, padx=30, pady=100)
-            self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
     def line_plot_command(self):
         self.plot_way = 'line_plot'
@@ -167,6 +139,40 @@ class FootDataOperatingPlatform(tk.Tk):
             info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
         )
         self.frame_3.tkraise()
+
+    def history_command(self):
+        print('this is history command')
+
+    def gui_size(self):
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        return f'{int(ws*0.99)}x{int(hs*2.1//3)}'
+
+    def back(self):
+        self.frame_1.tkraise()
+
+    def create_frame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
+                              frame_1, start_command):
+        self.param_frame = ParamFrame(frame, start_command)
+        self.info_frame = InfoFrame(frame, param_frame=self.param_frame)
+        self.lineplot_frame = LinePlotFrame(frame, d=None)
+        self.illustrated_frame = IllustratedFrame(frame, d=None)
+
+        if self.plot_way == 'line_plot':
+            self.back_frame = BackFrame(frame, frame_1, show_foot=True)
+
+            self.back_frame.grid(row=0, column=0, sticky='W', padx=20)
+            self.info_frame.grid(row=0, column=2, sticky='W')
+            self.param_frame.grid(row=0, column=1, sticky='W')
+            self.lineplot_frame.grid(row=1, column=0, columnspan=3)
+
+        elif self.plot_way == 'illustrated_plot':
+            self.back_frame = BackFrame(frame, frame_1, show_foot=False)
+
+            self.back_frame.grid(row=0, column=0, sticky='W', padx=20, pady=100)
+            self.param_frame.grid(row=0, column=1, sticky='W', padx=100, pady=100)
+            self.illustrated_frame.grid(row=0, column=2, columnspan=2, padx=30, pady=100)
+            self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
 
 
