@@ -44,26 +44,40 @@ def get_rgb_from_cmap(weight_value):
 # root.mainloop()
 
 
-# from PIL import Image
-# arr = ['fig/left.png', 'fig/right.png']
-# toImage = Image.new('RGBA',(180,90))
-# for i in range(2):
-#     fromImge = Image.open(arr[i]).resize((90,90), Image.ANTIALIAS)
-#     # loc = ((i % 2) * 200, (int(i/2) * 200))
-#     loc = ((i % 2) * 90, (int(i/2) * 200))
-#     print(loc)
-#     toImage.paste(fromImge, loc)
-# toImage.save('fig/90x90.png')
 
-# img = data.coffee()
-# # rr, cc = draw.circle(150, 150, 50)
-# # draw.set_color(img, [rr, cc], [0, 255, 0])
-# plt.imshow(img)
-# plt.show()
+
+
+
+class ScrollableFrame(tk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        canvas = tk.Canvas(self)
+        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = tk.Frame(canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+
 
 if __name__ == '__main__':
-    get_rgb_from_cmap(0.1)
-    get_rgb_from_cmap(0.5)
-    get_rgb_from_cmap(0.8)
-    get_rgb_from_cmap(0.9)
-    get_rgb_from_cmap(0.99)
+    root = tk.Tk()
+
+    frame = ScrollableFrame(root)
+
+    for i in range(50):
+        tk.Label(frame.scrollable_frame, text="Sample scrolling label").pack()
+
+    frame.pack()
+    root.mainloop()

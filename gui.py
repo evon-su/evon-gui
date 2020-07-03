@@ -2,7 +2,11 @@ import tkinter as tk
 from arduino_to_sql_3 import Daq
 import threading
 from time import sleep
-from frames import ParamFrame, FrontFrame, LinePlotFrame, InfoFrame, TitleFrame, BackFrame, IllustratedFrame
+from frames import ParamFrame, FrontFrame, LinePlotFrame, InfoFrame, TitleFrame, \
+                   BackFrame, IllustratedFrame, HistoryParamFrame, HistoryLinePlotFrame
+from func import ScrollableFrame
+from data import DataBase
+import pandas as pd
 
 
 class FootDataOperatingPlatform(tk.Tk):
@@ -22,6 +26,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.frame_1.configure(bg='white')
         self.frame_2.configure(bg='white')
         self.frame_3.configure(bg='white')
+        self.frame_4.configure(bg='lightblue')
 
         self.frame_0.place(relx=0, rely=0, relwidth=1, relheight=0.075)
 
@@ -30,17 +35,21 @@ class FootDataOperatingPlatform(tk.Tk):
                                      self.line_plot_command, self.illustrated_plot_command, self.history_command)
         self.frontFrame.pack(side=tk.TOP, expand=0, anchor='center', pady=150)
 
-        # objects in frames
+        # live plot frame objects
         self.back_frame = None
         self.param_frame = None
         self.info_frame = None
         self.lineplot_frame = None
         self.illustrated_frame = None
+        # history frame objects
+        self.history_param_frame = None
+        self.history_lineplot_frame = None
 
-        self.frame_1.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
-        self.frame_2.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
-        self.frame_3.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
-        self.frame_4.place(relx=0, rely=0.08, relwidth=1, relheight=0.9)
+        # Put big frames
+        self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
+        self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
+        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
+        self.frame_4.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
 
         # frames
         self.frame_1.tkraise()
@@ -108,11 +117,39 @@ class FootDataOperatingPlatform(tk.Tk):
             self.is_start = False
             self.d.is_run = False
 
+    def history_start_command(self, show='Raw Plot'):
+        # filter tables
+        database = DataBase()
 
+        projectName = self.history_param_frame.project.get()
+        userName = self.history_param_frame.user_name.get()
+        date = self.history_param_frame.date.get()
+
+        dates = database.getAllDates(projectName, userName)
+
+        if date:
+            dates = date
+
+        tableNames = database.getBunchTables(project=projectName.lower(),
+                                             user=userName.lower(), dates=dates)
+        print('tableNames: ', tableNames)
+
+        # Line Plot
+        data_gen = database.readBunchTables_gen(tableNames)
+        if show == 'Raw Plot':
+            for tableName, data in data_gen:
+                fig = self.history_lineplot_frame.makeOneFig(tableName, data)
+                self.history_lineplot_frame.putFig(fig)
+
+        # Pressure Plot
+
+        # fft plot
 
     def line_plot_command(self):
+        self.state('normal')
         self.plot_way = 'line_plot'
         try:
+            print('frame2 slaves', self.frame_2.grid_slaves())
             for item in self.frame_2.grid_slaves():
                 item.destroy()
 
@@ -120,13 +157,14 @@ class FootDataOperatingPlatform(tk.Tk):
             print('nothing to destroy...', ex)
 
         self.is_ani = False
-        self.create_frame_elements(
+        self.create_liveFrame_elements(
             frame=self.frame_2, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
             info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
         )
         self.frame_2.tkraise()
 
     def illustrated_plot_command(self):
+        self.state('normal')
         self.plot_way = 'illustrated_plot'
         try:
             for item in self.frame_3.grid_slaves():
@@ -134,14 +172,25 @@ class FootDataOperatingPlatform(tk.Tk):
         except Exception as ex:
             print('nothing to destroy ', ex)
 
-        self.create_frame_elements(
+        self.create_liveFrame_elements(
             frame=self.frame_3, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
             info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
         )
         self.frame_3.tkraise()
 
     def history_command(self):
-        print('this is history command')
+        self.state('zoomed')
+        try:
+            for item in self.frame_4.grid_slaves():
+                item.destroy()
+        except Exception as ex:
+            print('nothing to destroy...', ex)
+
+        # create self.frame_4
+        self.create_historyFrame_elements()
+
+        # tkraise frame_4
+        self.frame_4.tkraise()
 
     def gui_size(self):
         ws = self.winfo_screenwidth()
@@ -149,10 +198,12 @@ class FootDataOperatingPlatform(tk.Tk):
         return f'{int(ws*0.99)}x{int(hs*2.1//3)}'
 
     def back(self):
+        self.state('normal')
+        self.frame_0.tkraise()
         self.frame_1.tkraise()
 
-    def create_frame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
-                              frame_1, start_command):
+    def create_liveFrame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
+                                  frame_1, start_command):
         self.param_frame = ParamFrame(frame, start_command)
         self.info_frame = InfoFrame(frame, param_frame=self.param_frame)
         self.lineplot_frame = LinePlotFrame(frame, d=None)
@@ -174,8 +225,39 @@ class FootDataOperatingPlatform(tk.Tk):
             self.illustrated_frame.grid(row=0, column=2, columnspan=2, padx=30, pady=100)
             self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
+    def create_historyFrame_elements(self):
+        self.history_param_frame = HistoryParamFrame(self.frame_4, self.frame_1,
+                                                     self.history_start_command, self.back)
+        self.history_lineplot_frame = HistoryLinePlotFrame(self.frame_4)
+
+        # frame_4
+        self.history_param_frame.place(relx=0.01, rely=0, relwidth=0.99, relheight=0.08)
+        self.history_lineplot_frame.place(relx=0.01, rely=0.08, relwidth=0.99, relheight=0.99)
+
+        # self.scrollbar.config(command=self.cvs.yview)
 
 
+
+        # self.scrollable_frame.place(relx=0, rely=0.08, relwidth=1, relheight=1)
+        # self.cvs_frame.place(relx=0, rely=0.08, relwidth=1, relheight=1)
+        # self.cvs.config(yscrollcommand=self.scrollbar.set)
+        # self.cvs.create_window((90, 240), window=self.cvs_frame)
+
+    # def history_input_command(self):
+    #     self.back()  # 暫時function
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    frame = tk.Frame(root)
+    frame.pack()
+
+    scrollbar = tk.Scrollbar(frame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    lb=tk.Text(frame, yscrollcommand=scrollbar.set)
+    lb.pack()
+    scrollbar.config(command=lb.yview)
+
+    root.mainloop()
 
 
 

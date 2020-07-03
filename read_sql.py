@@ -35,5 +35,7 @@ def download_bunch_db(user, date, max_i):
         data.to_csv(f'data/{date}/{user}_{date}_{i}.csv', columns=data.columns, index=False)
 
 if __name__ == '__main__':
-    download_bunch_db(user='jy', date='20200605', max_i=15)
+    #download_bunch_db(user='jy', date='20200605', max_i=15)
+    data = download_tb('jy', '20200605', 1)
+    print(data)
 

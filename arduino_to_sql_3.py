@@ -189,7 +189,7 @@ class Daq:
 
         # create table
         for i in range(self.max_tb):
-            tbn = f'{user_name}_{self.toDay}_{i+1}'
+            tbn = f'{user_name}_{self.toDay}_{i+1:02d}'
             # check table exist or not
             self.cursor.execute(f"""
                 SELECT EXISTS (
@@ -295,18 +295,53 @@ class User:
                 exist_user.add(l0)
         return exist_user
 
+class SqlCommand:
+    # get schema and table names
+    getSchemaAndTableNames = '''
+        SELECT table_schema, table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'resist_speed'
+        ORDER BY table_schema, table_name;
+    '''
 
-class Calculation:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
 
-    def cal_fft(self):
-        # return fft list
+    def __init__(self):
         pass
 
-    def cal_rpm(self):
-        pass
+
+if __name__ == '__main__':
+    # 測試SQL指令
+    conn = psycopg2.connect(database='plantar_data', user='postgres', password='3333', host='localhost')
+    cursor = conn.cursor()
+#     cursor.execute(f"""
+#         SELECT table_name
+#   FROM information_schema.tables
+#  WHERE table_schema='data'
+#    AND table_type='BASE TABLE'
+# ;
+#     """)
+
+    # # get schema names
+    # cursor.execute('''
+    #     SELECT datname
+    #     FROM pg_database
+    #     WHERE datistemplate = false
+    #     ;
+    # ''')
+
+    # get schema and table names
+    cursor.execute('''
+    SELECT table_schema, table_name
+    FROM information_schema.tables
+    WHERE table_schema = 'resist_speed'
+    ORDER BY table_schema, table_name
+    ;''')
+
+    b = cursor.fetchall()
+    print(len(b))
+    print(b)
+
+
 
 
 

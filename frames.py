@@ -1,12 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from func import projectName_list, get_YlOrRd, read_YlOrRd
+from func import projectName_list, get_YlOrRd, read_YlOrRd, get_user_names, get_project_names, ScrollableFrame
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
-import csv
 from time import sleep
+import pandas as pd
 
 
 class TitleFrame(tk.Frame):
@@ -49,7 +49,7 @@ class FrontFrame(tk.Frame):
 
         self.history_data = ttk.Button(self.buttonFrame, text='History', command=history_command, cursor='hand1')
 
-        self.history_data.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
+        self.history_data.pack(side=tk.BOTTOM, padx=20, pady=50, fill='both', expand=0)
         self.lineplot_button.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
         self.illustrate_button.pack(side=tk.BOTTOM, padx=20, pady=10, fill='both', expand=0)
 
@@ -59,6 +59,7 @@ class ParamFrame(tk.Frame):
         super().__init__(container)
         self.configure(bg='white')
 
+        # Tk variable
         self.user_name = tk.StringVar()
         self.project_label = tk.StringVar(value='data')
         self.num_sensors = tk.IntVar(value=12)
@@ -73,7 +74,7 @@ class ParamFrame(tk.Frame):
                                     foreground='red', background='white')
         self.user_label.config(font=('Georgia 14 bold'))
         self.user_label.focus()
-        self.user_dropdown = ttk.Combobox(self, values=self.get_user_names(),
+        self.user_dropdown = ttk.Combobox(self, values=get_user_names(),
                                           textvariable=self.user_name)
         self.user_dropdown.bind('<<ComboboxSelected>>', self.set_user_name)
 
@@ -124,16 +125,13 @@ class ParamFrame(tk.Frame):
         self.max_runtime_entry.grid(row=5, column=1, pady=(5, 5), stick='WE')
         self.button.grid(row=6, column=0, columnspan=2, sticky='WE', pady=(20, 20), stick='WE')
 
-    def start_command(self):
-        pass
-
-    @staticmethod
-    def get_user_names():
-        user_names = []
-        with open('user.csv', 'r') as f:
-            for row in csv.reader(f):
-                user_names.append(row[0].upper())
-        return user_names
+    # @staticmethod
+    # def get_user_names():
+    #     user_names = []
+    #     with open('user.csv', 'r') as f:
+    #         for row in csv.reader(f):
+    #             user_names.append(row[0].upper())
+    #     return user_names
 
     def set_user_name(self, event):
         self.message_text.set(f'User Name: \n\n {self.user_name.get()}')
@@ -186,63 +184,6 @@ class LinePlotFrame(tk.Frame):
         ani = animation.FuncAnimation(self.fig, self.update_, interval=100,
                                       blit=False, repeat=False)
         self.canvas.draw()
-
-
-class InfoFrame(tk.Frame):
-    def __init__(self, container, param_frame):
-        super().__init__(container)
-        self.param_frame = param_frame
-        self.configure(padx=0, pady=2, bg='white')
-
-        self.message = tk.Message(self, textvariable=self.param_frame.message_text,
-                                  background='aliceblue', padx=50, pady=20, width=2000,
-                                  font='Georgia 10', relief='raised')
-        self.rpm_label1 = ttk.Label(self, text='RPM: ', background='white')
-        self.rpm_label2 = ttk.Label(self, textvariable=self.param_frame.rpm, background='white')
-        self.max_run_time_label1 = ttk.Label(self, text='Max Run Time: ', background='white')
-        self.max_run_time_label2 = ttk.Label(self, textvariable=self.param_frame.max_runtime, background='white')
-
-        self.rpm_label1.config(font=('Georgia', 20))
-        self.rpm_label2.config(font=('Georgia', 50))
-        self.max_run_time_label1.config(font=('Georgia', 20))
-        self.max_run_time_label2.config(font=('Georgia', 30))
-        # label components pack
-        # self.message.pack(side=tk.TOP, fill='x', anchor='nw', expand=True, pady=50)
-        # self.rpm_label1.pack(side=tk.LEFT)
-        # self.rpm_label2.pack(side=tk.TOP)
-        # self.max_run_time_label1.pack(side=tk.TOP)
-        # self.max_run_time_label2.pack(side=tk.TOP)
-        self.message.grid(row=0, column=0, columnspan=3)
-        self.rpm_label1.grid(row=2, column=0, sticky='w')
-        self.rpm_label2.grid(row=2, column=1, sticky='w')
-        self.max_run_time_label1.grid(row=3, column=0, sticky='w', pady=10)
-        self.max_run_time_label2.grid(row=3, column=1, sticky='w', pady=10)
-
-    def get_real_time_rpm(self, d):
-        while d.is_run:
-            f = d.fft_freq
-            self.param_frame.rpm.set(round(f, 1))
-            sleep(2)
-
-
-class BackFrame(tk.Frame):
-    def __init__(self, container, frame_1, show_foot=True):
-        super().__init__(container)
-        self.configure(bg='white')
-        self.frame_1 = frame_1
-
-        self.frame_1_back_button = ttk.Button(self, text='←  BACK', command=self.back_button_fn, cursor='hand1')
-        self.frame_1_back_button.pack(side=tk.LEFT)
-
-        if show_foot:
-            self.small_foot_image = ImageTk.PhotoImage(Image.open('fig/90x90.png'))
-            self.foot_graph = ttk.Label(self, image=self.small_foot_image, background='white')
-            self.foot_graph.pack(side=tk.LEFT)
-
-    def back_button_fn(self):
-        # self.small_foot_image = ImageTk.PhotoImage(Image.open('fig/200x150.png'))
-        # self.foot_graph = ttk.Label(self, image=self.small_foot_image, background='white')
-        self.frame_1.tkraise()
 
 
 class IllustratedFrame(tk.Frame):
@@ -327,9 +268,203 @@ class IllustratedFrame(tk.Frame):
         return c1, c2, c3
 
 
+class InfoFrame(tk.Frame):
+    def __init__(self, container, param_frame):
+        super().__init__(container)
+        self.param_frame = param_frame
+        self.configure(padx=0, pady=2, bg='white')
+
+        self.message = tk.Message(self, textvariable=self.param_frame.message_text,
+                                  background='aliceblue', padx=50, pady=20, width=2000,
+                                  font='Georgia 10', relief='raised')
+        self.rpm_label1 = ttk.Label(self, text='RPM: ', background='white')
+        self.rpm_label2 = ttk.Label(self, textvariable=self.param_frame.rpm, background='white')
+        self.max_run_time_label1 = ttk.Label(self, text='Max Run Time: ', background='white')
+        self.max_run_time_label2 = ttk.Label(self, textvariable=self.param_frame.max_runtime, background='white')
+
+        self.rpm_label1.config(font=('Georgia', 20))
+        self.rpm_label2.config(font=('Georgia', 50))
+        self.max_run_time_label1.config(font=('Georgia', 20))
+        self.max_run_time_label2.config(font=('Georgia', 30))
+        # label components pack
+        # self.message.pack(side=tk.TOP, fill='x', anchor='nw', expand=True, pady=50)
+        # self.rpm_label1.pack(side=tk.LEFT)
+        # self.rpm_label2.pack(side=tk.TOP)
+        # self.max_run_time_label1.pack(side=tk.TOP)
+        # self.max_run_time_label2.pack(side=tk.TOP)
+        self.message.grid(row=0, column=0, columnspan=3)
+        self.rpm_label1.grid(row=2, column=0, sticky='w')
+        self.rpm_label2.grid(row=2, column=1, sticky='w')
+        self.max_run_time_label1.grid(row=3, column=0, sticky='w', pady=10)
+        self.max_run_time_label2.grid(row=3, column=1, sticky='w', pady=10)
+
+    def get_real_time_rpm(self, d):
+        while d.is_run:
+            f = d.fft_freq
+            self.param_frame.rpm.set(round(f, 1))
+            sleep(2)
+
+
+class BackFrame(tk.Frame):
+    def __init__(self, container, frame_1, show_foot=True):
+        super().__init__(container)
+        self.configure(bg='white')
+        self.frame_1 = frame_1
+
+        self.frame_1_back_button = ttk.Button(self, text='←  BACK', command=self.back_button_fn, cursor='hand1')
+        self.frame_1_back_button.pack(side=tk.LEFT)
+
+        if show_foot:
+            self.small_foot_image = ImageTk.PhotoImage(Image.open('fig/90x90.png'))
+            self.foot_graph = ttk.Label(self, image=self.small_foot_image, background='white')
+            self.foot_graph.pack(side=tk.LEFT)
+
+    def back_button_fn(self):
+        self.frame_1.tkraise()
+
+
+class HistoryParamFrame(tk.Frame):
+    def __init__(self, container, frame_1, input_command_fn, back_command):
+        super().__init__(container)
+        self.frame_1 = frame_1
+
+        # Tk variable 暫時複製 ParmaFrame
+        self.user_name = tk.StringVar()
+        self.date = tk.StringVar()
+        self.project = tk.StringVar()
+        self.num_sensors = tk.IntVar(value=12)
+        self.freq = tk.IntVar(value=10)
+        self.max_runtime = tk.IntVar(value=60)
+        self.start_button_text = tk.StringVar(value='START')
+        self.message_text = tk.StringVar(value=f'User Name: \n\n{self.user_name.get()}')
+        self.rpm = tk.IntVar(value=0)
+        self.show = tk.StringVar(value='Raw Plot')
+        self.info = tk.StringVar()
+
+        # user
+        self.user_label = ttk.Label(self, text='User Name* : ')
+        self.user_label.config(font=('Georgia 13'))
+        self.user_dropdown = ttk.Combobox(self, values=get_user_names(),
+                                          textvariable=self.user_name)
+
+        # date
+        self.date_label = ttk.Label(self, text='Date : ')
+        self.date_label.config(font=('Georgia 13'))
+        self.date_dropdown = ttk.Combobox(self, values=self.get_dates(),
+                                          textvariable=self.date)
+
+        # project
+        self.project_label = ttk.Label(self, text='Project* : ')
+        self.project_label.config(font=('Georgia 13'))
+        self.project_dropdown = ttk.Combobox(self, values=get_project_names(),
+                                             textvariable=self.project)
+
+        # info
+        self.info_label = ttk.Label(self, text='Info : ')
+        self.info_label.config(font=('Georgia 13'))
+        self.info_dropdown = ttk.Combobox(self, values='',
+                                             textvariable=self.info)
+
+        # Show
+        self.show_label = ttk.Label(self, text='Show : ')
+        self.show_label.config(font=('Georgia 13'))
+        self.show_dropdown = ttk.Combobox(self, values=['Raw Plot', 'Pressure Plot', 'fft'],
+                                             textvariable=self.show)
+
+        # button
+        self.historyBackButton = ttk.Button(self, text='←  BACK', command=back_command, cursor='hand1')
+        self.historyInputButton = ttk.Button(self, text='INPUT',
+                                 command=input_command_fn, padding=(10, 20), cursor='hand2',
+                                 takefocus=True)
+
+        # grid
+        self.historyBackButton.grid(row=0, column=0)
+        self.project_label.grid(row=0, column=1)
+        self.project_dropdown.grid(row=1, column=1)
+        self.user_label.grid(row=0, column=2)
+        self.user_dropdown.grid(row=1, column=2)
+        self.date_label.grid(row=0, column=3)
+        self.date_dropdown.grid(row=1, column=3)
+        self.info_label.grid(row=0, column=4)
+        self.info_dropdown.grid(row=1, column=4)
+        self.show_label.grid(row=0, column=5)
+        self.show_dropdown.grid(row=1, column=5)
+        self.historyInputButton.grid(row=0, column=6, rowspan=2)
+
+    def get_dates(self, user=None, project=None, info=None):
+        pass
+
+    def get_schema_names(self):
+        '''
+            SELECT datname
+            FROM pg_database
+            WHERE schema
+            AND datistemplate = false
+            ;
+        '''
+
+
+class HistoryLinePlotFrame(tk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+
+        self.scrollableFrame = ScrollableFrame(self)
+
+        self.color = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
+                      'forestgreen', 'limegreen']
+        self.fig = None
+        self.canvas = None
+        self.canvas_widget = None
+
+        self.scrollableFrame.pack(fill=tk.X)
+
+        # self.scrollbar = tk.Scrollbar(self)
+        # self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    def makeAndPutFigs(self, tableNames):
+        for tableName in tableNames:
+            self.fig = self.makeOneFig(tableName)
+            self.putFig(self.fig)
+
+    @staticmethod
+    def makeOneFig(title, data, figsize=(18.9, 3)):
+        num_sensors_per_foot = (data.shape[1] - 2) // 2
+
+        fig = Figure(figsize=figsize)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ax1.set_ylim(0, 0.8)
+        ax2.set_ylim(0, 0.8)
+        t = data.iloc[:300, 1]
+        for i in range(0, num_sensors_per_foot):
+            ax1.plot(t, data.iloc[:300, i+2])
+            ax2.plot(t, data.iloc[:300, i+num_sensors_per_foot+2])
+        fig.suptitle(title)
+        ax1.set_ylabel('Amplitude')
+        ax2.set_ylabel('Amplitude')
+        return fig
+
+    def putFig(self, fig):
+        self.canvas = FigureCanvasTkAgg(fig, master=self.scrollableFrame.scrollable_frame)
+        self.canvas.draw()
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.pack(side=tk.TOP, fill='x', expand=True, anchor='w')
+
+
+class HistoryFftPlotFrame(tk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+
+
+class HistoryTableFrame(tk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+
+
 if __name__ == '__main__':
 
     root = tk.Tk()
-    frame = ParamFrame(root)
+    #frame = HistoryParamFrame(root, lambda: print('test command'))
+    frame = HistoryLinePlotFrame(root)
     frame.pack()
     root.mainloop()
