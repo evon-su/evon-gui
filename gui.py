@@ -3,8 +3,7 @@ from arduino_to_sql_3 import Daq
 import threading
 from time import sleep
 from frames import ParamFrame, FrontFrame, LinePlotFrame, InfoFrame, TitleFrame, \
-                   BackFrame, IllustratedFrame, HistoryParamFrame, HistoryLinePlotFrame
-from func import ScrollableFrame
+                   BackFrame, IllustratedFrame, HistoryParamFrame, HistoryLinePlotFrame, ScrollableFrame
 from data import DataBase
 import pandas as pd
 
@@ -32,7 +31,7 @@ class FootDataOperatingPlatform(tk.Tk):
 
         # frame_1
         self.frontFrame = FrontFrame(self.frame_1, self.frame_2, self.frame_3,
-                                     self.line_plot_command, self.illustrated_plot_command, self.history_command)
+                                     self.line_plot_command, self.illustrated_plot_command, self.history_frame_command)
         self.frontFrame.pack(side=tk.TOP, expand=0, anchor='center', pady=150)
 
         # live plot frame objects
@@ -41,6 +40,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.info_frame = None
         self.lineplot_frame = None
         self.illustrated_frame = None
+
         # history frame objects
         self.history_param_frame = None
         self.history_lineplot_frame = None
@@ -49,7 +49,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
         self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
         self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
-        self.frame_4.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
+        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=0.99)
 
         # frames
         self.frame_1.tkraise()
@@ -118,28 +118,70 @@ class FootDataOperatingPlatform(tk.Tk):
             self.d.is_run = False
 
     def history_start_command(self, show='Raw Plot'):
+        try:
+            for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
+                print('destroy ', item)
+                item.destroy()
+        except Exception as ex:
+            print('nothing to destroy ', ex)
+
         # filter tables
         database = DataBase()
 
         projectName = self.history_param_frame.project.get()
         userName = self.history_param_frame.user_name.get()
         date = self.history_param_frame.date.get()
-
-        dates = database.getAllDates(projectName, userName)
+        print('date: ', date)
 
         if date:
-            dates = date
+            dates = [date]
+        else:
+            dates = database.getAllDates(projectName, userName)
+        print('dates: ', dates)
 
         tableNames = database.getBunchTables(project=projectName.lower(),
                                              user=userName.lower(), dates=dates)
         print('tableNames: ', tableNames)
 
+        self.data_gen = database.readBunchTables_gen(tableNames)
+
+        def nextPageFn():
+            try:
+                for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
+                    print('destroy ', item)
+                    item.destroy()
+            except Exception as ex:
+                print('nothing to destroy ', ex)
+            try:
+                onePagePlot(num_figs=num_figs)
+                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
+            except StopIteration:
+                pass
+
+        num_figs = 10
+        def onePagePlot(num_figs=10):
+            i = 1
+            while True:
+                try:
+                    tableName, data = next(self.data_gen)
+                    print('num figs: ', i, tableName)
+                    title = tableName + f'  ({i:02d})'
+                    # make and put figs
+                    fig = self.history_lineplot_frame.makeOneFig(title, data)
+                    self.history_lineplot_frame.putFig(fig)
+                    i += 1
+                    if i == num_figs+1:
+                        break
+                except StopIteration:
+                    break
+
         # Line Plot
-        data_gen = database.readBunchTables_gen(tableNames)
         if show == 'Raw Plot':
-            for tableName, data in data_gen:
-                fig = self.history_lineplot_frame.makeOneFig(tableName, data)
-                self.history_lineplot_frame.putFig(fig)
+            try:
+                onePagePlot(num_figs=num_figs)
+                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
+            except StopIteration:
+                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
 
         # Pressure Plot
 
@@ -178,9 +220,10 @@ class FootDataOperatingPlatform(tk.Tk):
         )
         self.frame_3.tkraise()
 
-    def history_command(self):
+    def history_frame_command(self):
         self.state('zoomed')
         try:
+            print('slaves', self.frame_4.grid_slaves())
             for item in self.frame_4.grid_slaves():
                 item.destroy()
         except Exception as ex:
@@ -191,16 +234,6 @@ class FootDataOperatingPlatform(tk.Tk):
 
         # tkraise frame_4
         self.frame_4.tkraise()
-
-    def gui_size(self):
-        ws = self.winfo_screenwidth()
-        hs = self.winfo_screenheight()
-        return f'{int(ws*0.99)}x{int(hs*2.1//3)}'
-
-    def back(self):
-        self.state('normal')
-        self.frame_0.tkraise()
-        self.frame_1.tkraise()
 
     def create_liveFrame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
                                   frame_1, start_command):
@@ -234,17 +267,15 @@ class FootDataOperatingPlatform(tk.Tk):
         self.history_param_frame.place(relx=0.01, rely=0, relwidth=0.99, relheight=0.08)
         self.history_lineplot_frame.place(relx=0.01, rely=0.08, relwidth=0.99, relheight=0.99)
 
-        # self.scrollbar.config(command=self.cvs.yview)
+    def gui_size(self):
+        ws = self.winfo_screenwidth()
+        hs = self.winfo_screenheight()
+        return f'{int(ws * 0.99)}x{int(hs * 2.1 // 3)}'
 
-
-
-        # self.scrollable_frame.place(relx=0, rely=0.08, relwidth=1, relheight=1)
-        # self.cvs_frame.place(relx=0, rely=0.08, relwidth=1, relheight=1)
-        # self.cvs.config(yscrollcommand=self.scrollbar.set)
-        # self.cvs.create_window((90, 240), window=self.cvs_frame)
-
-    # def history_input_command(self):
-    #     self.back()  # 暫時function
+    def back(self):
+        self.state('normal')
+        self.frame_0.tkraise()
+        self.frame_1.tkraise()
 
 if __name__ == '__main__':
     root = tk.Tk()

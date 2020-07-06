@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from func import projectName_list, get_YlOrRd, read_YlOrRd, get_user_names, get_project_names, ScrollableFrame
+from func import projectName_list, get_YlOrRd, read_YlOrRd, get_user_names, get_project_names
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
@@ -323,6 +323,9 @@ class BackFrame(tk.Frame):
         self.frame_1.tkraise()
 
 
+
+
+
 class HistoryParamFrame(tk.Frame):
     def __init__(self, container, frame_1, input_command_fn, back_command):
         super().__init__(container)
@@ -377,8 +380,9 @@ class HistoryParamFrame(tk.Frame):
                                  command=input_command_fn, padding=(10, 20), cursor='hand2',
                                  takefocus=True)
 
+
         # grid
-        self.historyBackButton.grid(row=0, column=0)
+        self.historyBackButton.grid(row=0, column=0, padx=(10,100))
         self.project_label.grid(row=0, column=1)
         self.project_dropdown.grid(row=1, column=1)
         self.user_label.grid(row=0, column=2)
@@ -418,16 +422,13 @@ class HistoryLinePlotFrame(tk.Frame):
 
         self.scrollableFrame.pack(fill=tk.X)
 
-        # self.scrollbar = tk.Scrollbar(self)
-        # self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
     def makeAndPutFigs(self, tableNames):
         for tableName in tableNames:
             self.fig = self.makeOneFig(tableName)
             self.putFig(self.fig)
 
     @staticmethod
-    def makeOneFig(title, data, figsize=(18.9, 3)):
+    def makeOneFig(title, data, figsize=(20, 2.8)):
         num_sensors_per_foot = (data.shape[1] - 2) // 2
 
         fig = Figure(figsize=figsize)
@@ -450,6 +451,11 @@ class HistoryLinePlotFrame(tk.Frame):
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.pack(side=tk.TOP, fill='x', expand=True, anchor='w')
 
+    def putNextPageButton(self, next_page_fn):
+        self.nextPageButton = ttk.Button(self.scrollableFrame.scrollable_frame, text='NEXT PAGE',
+                                         command=next_page_fn, padding=(10,30))
+        self.nextPageButton.pack(side=tk.TOP, anchor='e', expand=True, fill='x', pady=20)
+
 
 class HistoryFftPlotFrame(tk.Frame):
     def __init__(self, container):
@@ -461,6 +467,27 @@ class HistoryTableFrame(tk.Frame):
         super().__init__(container)
 
 
+class ScrollableFrame(tk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        canvas = tk.Canvas(self, width=200, height=920)
+        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = tk.Frame(canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set, bg='darkblue')
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+
 if __name__ == '__main__':
 
     root = tk.Tk()
@@ -468,3 +495,4 @@ if __name__ == '__main__':
     frame = HistoryLinePlotFrame(root)
     frame.pack()
     root.mainloop()
+
