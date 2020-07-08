@@ -25,7 +25,7 @@ class FootDataOperatingPlatform(tk.Tk):
         self.frame_1.configure(bg='white')
         self.frame_2.configure(bg='white')
         self.frame_3.configure(bg='white')
-        self.frame_4.configure(bg='lightblue')
+        self.frame_4.configure(bg='white')
 
         self.frame_0.place(relx=0, rely=0, relwidth=1, relheight=0.075)
 
@@ -118,62 +118,67 @@ class FootDataOperatingPlatform(tk.Tk):
             self.d.is_run = False
 
     def history_start_command(self, show='Raw Plot'):
-        try:
-            for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
-                print('destroy ', item)
-                item.destroy()
-        except Exception as ex:
-            print('nothing to destroy ', ex)
-
-        # filter tables
-        database = DataBase()
-
-        projectName = self.history_param_frame.project.get()
-        userName = self.history_param_frame.user_name.get()
-        date = self.history_param_frame.date.get()
-        print('date: ', date)
-
-        if date:
-            dates = [date]
-        else:
-            dates = database.getAllDates(projectName, userName)
-        print('dates: ', dates)
-
-        tableNames = database.getBunchTables(project=projectName.lower(),
-                                             user=userName.lower(), dates=dates)
-        print('tableNames: ', tableNames)
-
-        self.data_gen = database.readBunchTables_gen(tableNames)
-
         def nextPageFn():
             try:
                 for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
-                    print('destroy ', item)
                     item.destroy()
             except Exception as ex:
                 print('nothing to destroy ', ex)
             try:
                 onePagePlot(num_figs=num_figs)
-                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
             except StopIteration:
+                print('stopiteration')
                 pass
+            else:
+                print('create another next btn')
+                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
 
-        num_figs = 10
         def onePagePlot(num_figs=10):
-            i = 1
+            #i = 1
             while True:
-                try:
-                    tableName, data = next(self.data_gen)
-                    print('num figs: ', i, tableName)
-                    title = tableName + f'  ({i:02d})'
-                    # make and put figs
-                    fig = self.history_lineplot_frame.makeOneFig(title, data)
-                    self.history_lineplot_frame.putFig(fig)
-                    i += 1
-                    if i == num_figs+1:
-                        break
-                except StopIteration:
+                n, tableName, data = next(self.data_gen)
+                title = tableName + f'  ({n:02d})'
+                # make and put figs
+                fig = self.history_lineplot_frame.makeOneFig(title, data)
+                self.history_lineplot_frame.putFig(fig)
+                #i += 1
+                if n % num_figs == 0:
                     break
+        # clear previous slaves
+        try:
+            for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
+                item.destroy()
+        except Exception as ex:
+            print('nothing to destroy ', ex)
+
+        # filter tables
+        projectName = self.history_param_frame.project.get()
+        userName = self.history_param_frame.user_name.get()
+        date = self.history_param_frame.date.get()
+        info = self.history_param_frame.info.get()
+        time_init = self.history_param_frame.time_init_value.get()
+        time_end = self.history_param_frame.time_end_value.get()
+
+        # setting value
+        self.history_lineplot_frame.time_init = time_init
+        self.history_lineplot_frame.time_end = time_end
+        #self.history_lineplot_frame.time_end = time_end
+
+        # number of figures per page
+        num_figs = 10
+
+        if date:
+            dates = [date]
+        else:
+            dates = self.database.getAllDates(projectName, userName)
+        print('dates: ', dates)
+
+        tableNames = self.database.getBunchTables(project=projectName.lower(),
+                                             user=userName.lower(), dates=dates, info=info)
+        self.history_param_frame.page.set(f'TOTAL " {len(tableNames)} " FIGS')
+        print('tableNames: ', tableNames)
+
+        self.data_gen = self.database.readBunchTables_gen(tableNames)
 
         # Line Plot
         if show == 'Raw Plot':
@@ -181,7 +186,7 @@ class FootDataOperatingPlatform(tk.Tk):
                 onePagePlot(num_figs=num_figs)
                 self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
             except StopIteration:
-                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
+                pass
 
         # Pressure Plot
 
@@ -259,8 +264,28 @@ class FootDataOperatingPlatform(tk.Tk):
             self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
     def create_historyFrame_elements(self):
+        def user_selec_cmd(event):
+            projectName = self.history_param_frame.project.get()
+            userName = self.history_param_frame.user_name.get()
+            dates = self.database.getAllDates(projectName, userName)
+            self.history_param_frame.date_dropdown['value'] = dates
+            self.history_param_frame.date_dropdown.set('')
+
+        def project_selec_cmd(event):
+            projectName = self.history_param_frame.project.get()
+            users = self.database.getAllUsers(projectName)
+            self.history_param_frame.user_dropdown['value'] = users
+            self.history_param_frame.user_dropdown.set('')
+            self.history_param_frame.date_dropdown.set('')
+
+        # create database class object
+        self.database = DataBase()
+        # create history param frame
         self.history_param_frame = HistoryParamFrame(self.frame_4, self.frame_1,
                                                      self.history_start_command, self.back)
+        # bind
+        self.history_param_frame.project_dropdown.bind("<<ComboboxSelected>>", project_selec_cmd)
+        self.history_param_frame.user_dropdown.bind("<<ComboboxSelected>>", user_selec_cmd)
         self.history_lineplot_frame = HistoryLinePlotFrame(self.frame_4)
 
         # frame_4
@@ -289,6 +314,3 @@ if __name__ == '__main__':
     scrollbar.config(command=lb.yview)
 
     root.mainloop()
-
-
-

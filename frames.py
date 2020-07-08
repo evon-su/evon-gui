@@ -343,12 +343,16 @@ class HistoryParamFrame(tk.Frame):
         self.rpm = tk.IntVar(value=0)
         self.show = tk.StringVar(value='Raw Plot')
         self.info = tk.StringVar()
+        self.page = tk.StringVar()
+        self.time_init_value = tk.IntVar(value=0)
+        self.time_end_value = tk.IntVar(value=20)
 
         # user
         self.user_label = ttk.Label(self, text='User Name* : ')
         self.user_label.config(font=('Georgia 13'))
         self.user_dropdown = ttk.Combobox(self, values=get_user_names(),
                                           textvariable=self.user_name)
+
 
         # date
         self.date_label = ttk.Label(self, text='Date : ')
@@ -374,12 +378,22 @@ class HistoryParamFrame(tk.Frame):
         self.show_dropdown = ttk.Combobox(self, values=['Raw Plot', 'Pressure Plot', 'fft'],
                                              textvariable=self.show)
 
+        # pages
+        self.page_label = ttk.Label(self, textvariable=self.page, width=20, padding=(10,0))
+        self.page_label.config(font=('Georgia 13'))
+
+        # scale bar
+        self.time_label = ttk.Label(self, text='time scale')
+        self.time_label.config(font=('Georgia 8'))
+        self.time_init_entry = ttk.Entry(self, textvariable=self.time_init_value, width=5)
+
+        self.time_end_entry = ttk.Entry(self, textvariable=self.time_end_value, width=5)
+
         # button
         self.historyBackButton = ttk.Button(self, text='←  BACK', command=back_command, cursor='hand1')
         self.historyInputButton = ttk.Button(self, text='INPUT',
                                  command=input_command_fn, padding=(10, 20), cursor='hand2',
                                  takefocus=True)
-
 
         # grid
         self.historyBackButton.grid(row=0, column=0, padx=(10,100))
@@ -394,6 +408,10 @@ class HistoryParamFrame(tk.Frame):
         self.show_label.grid(row=0, column=5)
         self.show_dropdown.grid(row=1, column=5)
         self.historyInputButton.grid(row=0, column=6, rowspan=2)
+        self.page_label.grid(row=0, column=7, padx=(50,0))
+        self.time_label.grid(row=0, column=8, padx=(10,0), columnspan=2)
+        self.time_init_entry.grid(row=1, column=8, padx=(10,0))
+        self.time_end_entry.grid(row=1, column=9)
 
     def get_dates(self, user=None, project=None, info=None):
         pass
@@ -414,21 +432,23 @@ class HistoryLinePlotFrame(tk.Frame):
 
         self.scrollableFrame = ScrollableFrame(self)
 
-        self.color = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
-                      'forestgreen', 'limegreen']
         self.fig = None
         self.canvas = None
         self.canvas_widget = None
 
         self.scrollableFrame.pack(fill=tk.X)
 
+        self.time_init = None
+        self.time_end = None
+
     def makeAndPutFigs(self, tableNames):
         for tableName in tableNames:
             self.fig = self.makeOneFig(tableName)
             self.putFig(self.fig)
 
-    @staticmethod
-    def makeOneFig(title, data, figsize=(20, 2.8)):
+    def makeOneFig(self, title, data, figsize=(20, 2.8)):
+        colors = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
+                  'forestgreen', 'limegreen']
         num_sensors_per_foot = (data.shape[1] - 2) // 2
 
         fig = Figure(figsize=figsize)
@@ -436,18 +456,20 @@ class HistoryLinePlotFrame(tk.Frame):
         ax2 = fig.add_subplot(122)
         ax1.set_ylim(0, 0.8)
         ax2.set_ylim(0, 0.8)
-        t = data.iloc[:300, 1]
-        for i in range(0, num_sensors_per_foot):
-            ax1.plot(t, data.iloc[:300, i+2])
-            ax2.plot(t, data.iloc[:300, i+num_sensors_per_foot+2])
+        t = data.loc[self.time_init:self.time_end, 1]
+        for i, color in zip(range(0, num_sensors_per_foot), colors):
+            ax1.plot(t, data.loc[self.time_init:self.time_end, i+2], label=f'a{i}', color=color)
+            ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2], label=f'a{i+num_sensors_per_foot}', color=color)
         fig.suptitle(title)
+        ax1.legend(loc='upper left')
+        ax2.legend(loc='upper left')
         ax1.set_ylabel('Amplitude')
         ax2.set_ylabel('Amplitude')
         return fig
 
     def putFig(self, fig):
         self.canvas = FigureCanvasTkAgg(fig, master=self.scrollableFrame.scrollable_frame)
-        self.canvas.draw()
+        #self.canvas.draw()
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.pack(side=tk.TOP, fill='x', expand=True, anchor='w')
 
@@ -470,7 +492,7 @@ class HistoryTableFrame(tk.Frame):
 class ScrollableFrame(tk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self, width=200, height=920)
+        canvas = tk.Canvas(self, width=210, height=920)
         scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
         self.scrollable_frame = tk.Frame(canvas)
 
@@ -482,7 +504,7 @@ class ScrollableFrame(tk.Frame):
         )
 
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set, bg='darkblue')
+        canvas.configure(yscrollcommand=scrollbar.set, bg='white')
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")

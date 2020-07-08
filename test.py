@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 from skimage import draw, data
 import matplotlib.pyplot as plt
 import numpy as np
+from tkinter import ttk
 
 from matplotlib import cm
 
@@ -74,10 +75,18 @@ class ScrollableFrame(tk.Frame):
 if __name__ == '__main__':
     root = tk.Tk()
 
-    frame = ScrollableFrame(root)
+    v = tk.StringVar()
+    dropdown = ttk.Combobox(root, values=['a', 'b', 'c'], textvariable=v)
+    dropdown.bind("<<ComboboxSelected>>", lambda v: print('selected'))
 
-    for i in range(50):
-        tk.Label(frame.scrollable_frame, text="Sample scrolling label").pack()
-
-    frame.pack()
+    dropdown.pack()
     root.mainloop()
+
+    # tkwindow = tk.Tk()
+    #
+    # cbox = ttk.Combobox(tkwindow, values=[1, 2, 3], state='readonly')
+    # cbox.grid(column=0, row=0)
+    #
+    # cbox.bind("<<ComboboxSelected>>", lambda _: print("Selected!"))
+    #
+    # tkwindow.mainloop()
