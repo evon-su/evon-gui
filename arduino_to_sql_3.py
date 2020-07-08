@@ -205,8 +205,8 @@ class Daq:
                 try:
                     self.cursor.execute(f"""
                         CREATE TABLE {self.project_name}.{tbn} (timestamp timestamp,
-                                           interval real,
-                                           {sql_str});
+                                                                interval real,
+                                                                {sql_str});
                     """)
 
                     tableName = tbn

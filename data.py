@@ -45,13 +45,15 @@ class DataBase:
     def getBunchTables(self, project=None, user=None, dates=None, info=None):
         tableNames = []
         if info:
-            print('info ', project)
-            self.cursor.execute("""
-                SELECT table_name FROM {}.info
-                WHERE info LIKE '%{}%'
-                AND table_name LIKE '{}%';
-            """.format(project, info.lower(), user.lower()))
-            tableNames = [project + '.' + l[0] for l in self.cursor.fetchall()]
+            try:
+                self.cursor.execute("""
+                    SELECT table_name FROM {}.info
+                    WHERE info LIKE '%{}%'
+                    AND table_name LIKE '{}%';
+                """.format(project, info.lower(), user.lower()))
+                tableNames = [project + '.' + l[0] for l in self.cursor.fetchall()]
+            except Exception as e:
+                print('info error : ', e)
         else:
             for date in dates:
                 self.cursor.execute("""

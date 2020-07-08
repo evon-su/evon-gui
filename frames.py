@@ -26,9 +26,6 @@ class FrontFrame(tk.Frame):
         super().__init__(container)
         self.configure(bg='blue')
 
-        self.frame_2 = frame_2
-        self.frame_3 = frame_3
-
         # Setting Frames
         self.figFrame = tk.Frame(self, padx=0, pady=0, bg='white')
         self.buttonFrame = tk.Frame(self, bg='white')
@@ -383,8 +380,8 @@ class HistoryParamFrame(tk.Frame):
         self.page_label.config(font=('Georgia 13'))
 
         # scale bar
-        self.time_label = ttk.Label(self, text='time scale')
-        self.time_label.config(font=('Georgia 8'))
+        self.time_label = ttk.Label(self, text='Time Scale')
+        self.time_label.config(font=('Georgia 12'))
         self.time_init_entry = ttk.Entry(self, textvariable=self.time_init_value, width=5)
 
         self.time_end_entry = ttk.Entry(self, textvariable=self.time_end_value, width=5)

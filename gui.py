@@ -46,10 +46,10 @@ class FootDataOperatingPlatform(tk.Tk):
         self.history_lineplot_frame = None
 
         # Put big frames
-        self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
-        self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
-        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=0.9)
-        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=0.99)
+        self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=1)
+        self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=1)
+        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=1)
+        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=1)
 
         # frames
         self.frame_1.tkraise()
