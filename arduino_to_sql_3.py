@@ -261,8 +261,6 @@ class Daq:
             print('--', self.fft_freq, '--')
             sleep(2)
 
-
-
     @staticmethod
     def col_name(num_sensors, mode):
         """create column names for SQL"""

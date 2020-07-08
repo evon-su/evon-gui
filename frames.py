@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from func import projectName_list, get_YlOrRd, read_YlOrRd, get_user_names, get_project_names
+from func import get_YlOrRd, read_YlOrRd, get_user_names, get_project_names
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
@@ -24,7 +24,7 @@ class TitleFrame(tk.Frame):
 class FrontFrame(tk.Frame):
     def __init__(self, container, frame_2, frame_3, line_plot_command, illustrated_plot_command, history_command):
         super().__init__(container)
-        self.configure(bg='blue')
+        self.configure(bg='white')
 
         # Setting Frames
         self.figFrame = tk.Frame(self, padx=0, pady=0, bg='white')
@@ -79,7 +79,7 @@ class ParamFrame(tk.Frame):
         self.project_name = ttk.Label(self, text='Project : ',
                                       foreground='red', background='white')
         self.project_name.config(font=('Georgia 14 bold'))
-        self.project_dropdown = ttk.Combobox(self, values=projectName_list,
+        self.project_dropdown = ttk.Combobox(self, values=get_project_names(),
                                              textvariable=self.project_label)
 
         # project information

@@ -4,9 +4,6 @@ from matplotlib import cm
 import csv
 
 
-projectName_list = ['test', 'resist_speed']
-
-
 def cal_fft(series, period):
     N = len(series)
     fft_list = np.fft.fft(series)[:N // 2]
@@ -24,14 +21,14 @@ def cal_rpm(series, period):
 
 def get_user_names():
     user_names = []
-    with open('user.csv', 'r') as f:
+    with open('files/user.csv', 'r') as f:
         for row in csv.reader(f):
             user_names.append(row[0].upper())
     return user_names
 
 def get_project_names():
     project_names = []
-    with open('projectName.csv', 'r') as f:
+    with open('files/projectName.csv', 'r') as f:
         for row in csv.reader(f):
             project_names.append(row[0].upper())
     return project_names
@@ -55,7 +52,7 @@ def get_YlOrRd():
     return colormap_int
 
 def read_YlOrRd():
-    data = np.loadtxt('YlOrRd_int.txt', dtype=int)
+    data = np.loadtxt('files/YlOrRd_int.txt', dtype=int)
     return data
 
 
