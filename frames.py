@@ -6,7 +6,6 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
 from time import sleep
-import pandas as pd
 
 
 class TitleFrame(tk.Frame):
@@ -320,9 +319,6 @@ class BackFrame(tk.Frame):
         self.frame_1.tkraise()
 
 
-
-
-
 class HistoryParamFrame(tk.Frame):
     def __init__(self, container, frame_1, input_command_fn, back_command):
         super().__init__(container)
@@ -443,7 +439,7 @@ class HistoryLinePlotFrame(tk.Frame):
             self.fig = self.makeOneFig(tableName)
             self.putFig(self.fig)
 
-    def makeOneFig(self, title, data, figsize=(20, 2.8)):
+    def makeOneFig(self, title, data, info, exact_run_time, figsize=(20, 2.8)):
         colors = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
                   'forestgreen', 'limegreen']
         num_sensors_per_foot = (data.shape[1] - 2) // 2
@@ -457,16 +453,20 @@ class HistoryLinePlotFrame(tk.Frame):
         for i, color in zip(range(0, num_sensors_per_foot), colors):
             ax1.plot(t, data.loc[self.time_init:self.time_end, i+2], label=f'a{i}', color=color)
             ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2], label=f'a{i+num_sensors_per_foot}', color=color)
-        fig.suptitle(title)
+        fig.suptitle(title + '   :   --  ' + info.strip('\n') + ' ( ' + exact_run_time + ' s ) ')
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper left')
         ax1.set_ylabel('Amplitude')
         ax2.set_ylabel('Amplitude')
+        ax1.grid()
+        ax2.grid()
+        # ax1.table(cellText=[[1,2,3], [4,5,6]], rowLabels=['a','b'], colLabels=['d','e','f'], loc='best', colWidths=[0.1]*3)
+        # ax2.table(cellText=[[1,2,3], [4,5,6]], rowLabels=['a','b'], colLabels=['d','e','f'], loc='best', colWidths=[0.1]*3)
+
         return fig
 
     def putFig(self, fig):
         self.canvas = FigureCanvasTkAgg(fig, master=self.scrollableFrame.scrollable_frame)
-        #self.canvas.draw()
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.pack(side=tk.TOP, fill='x', expand=True, anchor='w')
 

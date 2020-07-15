@@ -19,7 +19,6 @@ arduino_param = {
     'disabled': (0, 1)  # Rx, Tx, Crystal
 }
 
-
 class Daq:
     """read data from arduino, save to SQL, and plot instant curve"""
     def __init__(self, user_name, num_sensors, sr, max_runtime, *, com1, com2,
@@ -38,10 +37,7 @@ class Daq:
         self.cursor = self.conn.cursor()
         self.uno1 = Arduino(self.com1)
         self.uno1.setup_layout(arduino_param)
-        # self.uno2 = Arduino(self.com2)
-        # self.uno2.setup_layout(arduino_param)
         self.it1 = util.Iterator(self.uno1)
-        # self.it2 = util.Iterator(self.uno2)
         # variables for class
         self.plot_second = plot_second
         self.dqs_len = plot_second * self.sr
@@ -119,7 +115,6 @@ class Daq:
                 INSERT INTO {self.project_name}.{self.tableName} (timestamp, interval, {self.col_str})
                 VALUES ('{t}', '{p}', {data});
             """)
-
 
     def start_read_and_save(self):
         self.init_arduino()

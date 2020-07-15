@@ -66,12 +66,29 @@ class DataBase:
 
         return sorted(tableNames)  # list
 
+    def readInfo(self, tableName):
+        projectName, tableName = tableName.split('.')
+        self.cursor.execute(
+            '''
+            SELECT info, exact_run_time FROM {}.info WHERE table_name = '{}'
+            '''.format(projectName, tableName)
+        )
+        info = self.cursor.fetchall()
+        if info:
+            info, exact_run_time = info[0]
+        else:
+            info, exact_run_time = 'no info', 'NULL'
+
+        return info, exact_run_time
+
+
     def readBunchTables_gen(self, tableNames):
         i = 0
         for tableName in tableNames:
             data = self.readOneTable_n(tableName)
+            info, exact_run_time = self.readInfo(tableName)  # a string
             i += 1
-            yield i, tableName, data
+            yield i, tableName, data, info, str(exact_run_time)
 
 
 if __name__ == '__main__':

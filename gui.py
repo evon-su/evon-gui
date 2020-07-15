@@ -1,11 +1,11 @@
 import tkinter as tk
-from arduino_to_sql_3 import Daq
 import threading
 from time import sleep
+
 from frames import ParamFrame, FrontFrame, LinePlotFrame, InfoFrame, TitleFrame, \
-                   BackFrame, IllustratedFrame, HistoryParamFrame, HistoryLinePlotFrame, ScrollableFrame
+                   BackFrame, IllustratedFrame, HistoryParamFrame, HistoryLinePlotFrame
 from data import DataBase
-import pandas as pd
+from arduino_to_sql_3 import Daq
 
 
 class FootDataOperatingPlatform(tk.Tk):
@@ -48,8 +48,8 @@ class FootDataOperatingPlatform(tk.Tk):
         # Put big frames
         self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=1)
         self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=1)
-        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=1)
-        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=1)
+        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=1) # with frame_0 title
+        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=1) # without frame_0 title
 
         # frames
         self.frame_1.tkraise()
@@ -134,14 +134,12 @@ class FootDataOperatingPlatform(tk.Tk):
                 self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
 
         def onePagePlot(num_figs=10):
-            #i = 1
             while True:
-                n, tableName, data = next(self.data_gen)
+                n, tableName, data, info, exact_run_time = next(self.data_gen)
                 title = tableName + f'  ({n:02d})'
                 # make and put figs
-                fig = self.history_lineplot_frame.makeOneFig(title, data)
+                fig = self.history_lineplot_frame.makeOneFig(title, data, info, exact_run_time)
                 self.history_lineplot_frame.putFig(fig)
-                #i += 1
                 if n % num_figs == 0:
                     break
         # clear previous slaves
@@ -203,6 +201,7 @@ class FootDataOperatingPlatform(tk.Tk):
         except Exception as ex:
             print('nothing to destroy...', ex)
 
+        # create main frame
         self.is_ani = False
         self.create_liveFrame_elements(
             frame=self.frame_2, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
@@ -219,6 +218,7 @@ class FootDataOperatingPlatform(tk.Tk):
         except Exception as ex:
             print('nothing to destroy ', ex)
 
+        # create main frame
         self.create_liveFrame_elements(
             frame=self.frame_3, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
             info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
