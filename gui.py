@@ -117,7 +117,7 @@ class FootDataOperatingPlatform(tk.Tk):
             self.is_start = False
             self.d.is_run = False
 
-    def history_start_command(self, show='Raw Plot'):
+    def history_start_command(self, show='Pressure Plot'):
         def nextPageFn():
             try:
                 for item in self.history_lineplot_frame.scrollableFrame.scrollable_frame.pack_slaves():
@@ -125,7 +125,7 @@ class FootDataOperatingPlatform(tk.Tk):
             except Exception as ex:
                 print('nothing to destroy ', ex)
             try:
-                onePagePlot(num_figs=num_figs)
+                onePagePlot(num_figs=num_figs, show=show)
             except StopIteration:
                 print('stopiteration')
                 pass
@@ -133,12 +133,12 @@ class FootDataOperatingPlatform(tk.Tk):
                 print('create another next btn')
                 self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
 
-        def onePagePlot(num_figs=10):
+        def onePagePlot(show, num_figs=10):
             while True:
                 n, tableName, data, info, exact_run_time = next(self.data_gen)
                 title = tableName + f'  ({n:02d})'
                 # make and put figs
-                fig = self.history_lineplot_frame.makeOneFig(title, data, info, exact_run_time)
+                fig = self.history_lineplot_frame.makeOneFig(title, data, info, exact_run_time, show=show)
                 self.history_lineplot_frame.putFig(fig)
                 if n % num_figs == 0:
                     break
@@ -154,6 +154,7 @@ class FootDataOperatingPlatform(tk.Tk):
         userName = self.history_param_frame.user_name.get()
         date = self.history_param_frame.date.get()
         info = self.history_param_frame.info.get()
+        show = self.history_param_frame.show.get()
         time_init = self.history_param_frame.time_init_value.get()
         time_end = self.history_param_frame.time_end_value.get()
 
@@ -179,12 +180,11 @@ class FootDataOperatingPlatform(tk.Tk):
         self.data_gen = self.database.readBunchTables_gen(tableNames)
 
         # Line Plot
-        if show == 'Raw Plot':
-            try:
-                onePagePlot(num_figs=num_figs)
-                self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
-            except StopIteration:
-                pass
+        try:
+            onePagePlot(show=show, num_figs=num_figs)
+            self.history_lineplot_frame.putNextPageButton(next_page_fn=nextPageFn)
+        except StopIteration:
+            pass
 
         # Pressure Plot
 

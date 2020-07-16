@@ -6,12 +6,21 @@ import csv
 
 def cal_fft(series, period):
     N = len(series)
-    fft_list = np.fft.fft(series)[:N // 2]
+    fft_list = np.fft.fft(series)[:N//2]
     fft_abs = abs(fft_list)
     fs = N / period
     fk = np.arange(N) / period
 
     return fft_list, fft_abs, fk, fs
+
+def cal_fft_series(series):
+    N = len(series)
+    fft_list = np.fft.fft(series)[: N//2]
+    fft_abs = abs(fft_list)
+    # fs = N / series.index[-1]
+    # fk = np.arange(N) / period
+
+    return fft_abs
 
 def cal_rpm(series, period):
     fft_list, fft_abs, fk, fs = cal_fft(series, period)
@@ -24,6 +33,7 @@ def get_user_names():
     with open('files/user.csv', 'r') as f:
         for row in csv.reader(f):
             user_names.append(row[0].upper())
+
     return user_names
 
 def get_project_names():

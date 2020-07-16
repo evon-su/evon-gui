@@ -1,6 +1,7 @@
 import psycopg2
 import numpy as np
 import pandas as pd
+from func import cal_fft, cal_rpm
 
 
 class DataBase:
@@ -81,7 +82,6 @@ class DataBase:
 
         return info, exact_run_time
 
-
     def readBunchTables_gen(self, tableNames):
         i = 0
         for tableName in tableNames:
@@ -89,6 +89,19 @@ class DataBase:
             info, exact_run_time = self.readInfo(tableName)  # a string
             i += 1
             yield i, tableName, data, info, str(exact_run_time)
+
+    def calculate_fft(self, data):
+        # fft series
+        # fft, phase, lower, amplitude
+        # return values
+        return data.apply(cal_fft, data.index[-1])
+
+
+class Calculation:
+    # get data and calculate
+
+
+    pass
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from func import get_YlOrRd, read_YlOrRd, get_user_names, get_project_names
+from func import read_YlOrRd, get_user_names, get_project_names, cal_fft_series
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
@@ -434,12 +434,13 @@ class HistoryLinePlotFrame(tk.Frame):
         self.time_init = None
         self.time_end = None
 
-    def makeAndPutFigs(self, tableNames):
-        for tableName in tableNames:
-            self.fig = self.makeOneFig(tableName)
-            self.putFig(self.fig)
+    # def makeAndPutFigs(self, tableNames):
+    #     for tableName in tableNames:
+    #         self.fig = self.makeOneFig(tableName)
+    #         self.putFig(self.fig)
 
-    def makeOneFig(self, title, data, info, exact_run_time, figsize=(20, 2.8)):
+    def makeOneFig(self, title, data, info, exact_run_time, show='Raw Plot', figsize=(20, 2.8),
+                   A=1, B=-1.84):
         colors = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
                   'forestgreen', 'limegreen']
         num_sensors_per_foot = (data.shape[1] - 2) // 2
@@ -447,17 +448,45 @@ class HistoryLinePlotFrame(tk.Frame):
         fig = Figure(figsize=figsize)
         ax1 = fig.add_subplot(121)
         ax2 = fig.add_subplot(122)
-        ax1.set_ylim(0, 0.8)
-        ax2.set_ylim(0, 0.8)
         t = data.loc[self.time_init:self.time_end, 1]
+
         for i, color in zip(range(0, num_sensors_per_foot), colors):
-            ax1.plot(t, data.loc[self.time_init:self.time_end, i+2], label=f'a{i}', color=color)
-            ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2], label=f'a{i+num_sensors_per_foot}', color=color)
-        fig.suptitle(title + '   :   --  ' + info.strip('\n') + ' ( ' + exact_run_time + ' s ) ')
+            if show == 'Raw Plot':
+                ax1.plot(t, data.loc[self.time_init:self.time_end, i+2], label=f'a{i}', color=color)
+                ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2], label=f'a{i+num_sensors_per_foot}', color=color)
+                ax1.set_ylabel('Amplitude')
+                ax2.set_ylabel('Amplitude')
+
+            elif show == 'Pressure Plot':
+                ax1.plot(t, data.loc[self.time_init:self.time_end, i+2].apply(lambda x: 10**((x-B)/A)), label=f'a{i}', color=color)
+                ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2].apply(lambda x: 10**((x-B)/A)), label=f'a{i+num_sensors_per_foot}', color=color)
+                ax1.set_ylabel('Pressure (kPa)')
+                ax2.set_ylabel('Pressure (kPa)')
+
+            elif show == 'fft':
+                data2 = data.loc[self.time_init:self.time_end, 2:].apply(cal_fft_series)
+                plot_second = int(self.time_end - self.time_init)
+                N = len(data2)
+                fk = [f / plot_second for f in range(N)][1:]
+
+                ax1.plot(fk, data2.iloc[1:, i], label=f'a{i}', color=color)
+                ax2.plot(fk, data2.iloc[1:, i + num_sensors_per_foot],
+                         label=f'a{i + num_sensors_per_foot}', color=color)
+
+        if show == 'Pressure Plot':
+            pressure_scale = 400  # setting pressure scale***
+            ax1.set_ylim(0, pressure_scale)
+            ax2.set_ylim(0, pressure_scale)
+
+        elif show == 'Raw Plot':
+            raw_scale = 0.8
+            ax1.set_ylim(0, raw_scale)
+            ax2.set_ylim(0, raw_scale)
+
+        fig.suptitle(title + '   :   "  ' + info.strip('\n') + ' ( ' + exact_run_time + ' s )  "')
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper left')
-        ax1.set_ylabel('Amplitude')
-        ax2.set_ylabel('Amplitude')
+
         ax1.grid()
         ax2.grid()
         # ax1.table(cellText=[[1,2,3], [4,5,6]], rowLabels=['a','b'], colLabels=['d','e','f'], loc='best', colWidths=[0.1]*3)
