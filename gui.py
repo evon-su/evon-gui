@@ -46,10 +46,10 @@ class FootDataOperatingPlatform(tk.Tk):
         self.history_lineplot_frame = None
 
         # Put big frames
-        self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=1)
-        self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=1)
-        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=1) # with frame_0 title
-        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=1) # without frame_0 title
+        self.frame_1.place(relx=0, rely=0.07, relwidth=1, relheight=1)  # initial frame
+        self.frame_2.place(relx=0, rely=0.07, relwidth=1, relheight=1)  # illustrated plot frame
+        self.frame_3.place(relx=0, rely=0.07, relwidth=1, relheight=1)  # line plot frame with frame_0 title
+        self.frame_4.place(relx=0, rely=0.00, relwidth=1, relheight=1)  # history frame without frame_0 title
 
         # frames
         self.frame_1.tkraise()
@@ -186,10 +186,6 @@ class FootDataOperatingPlatform(tk.Tk):
         except StopIteration:
             pass
 
-        # Pressure Plot
-
-        # fft plot
-
     def line_plot_command(self):
         self.state('normal')
         self.plot_way = 'line_plot'
@@ -204,8 +200,7 @@ class FootDataOperatingPlatform(tk.Tk):
         # create main frame
         self.is_ani = False
         self.create_liveFrame_elements(
-            frame=self.frame_2, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
-            info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
+            frame=self.frame_2, frame_1=self.frame_1, start_command=self.start_command
         )
         self.frame_2.tkraise()
 
@@ -220,8 +215,7 @@ class FootDataOperatingPlatform(tk.Tk):
 
         # create main frame
         self.create_liveFrame_elements(
-            frame=self.frame_3, back_frame=BackFrame, param_frame=ParamFrame, plot_frame=LinePlotFrame,
-            info_frame=InfoFrame, frame_1=self.frame_1, start_command=self.start_command
+            frame=self.frame_3, frame_1=self.frame_1, start_command=self.start_command
         )
         self.frame_3.tkraise()
 
@@ -240,8 +234,9 @@ class FootDataOperatingPlatform(tk.Tk):
         # tkraise frame_4
         self.frame_4.tkraise()
 
-    def create_liveFrame_elements(self, *, frame, back_frame, param_frame, plot_frame, info_frame,
-                                  frame_1, start_command):
+    def create_liveFrame_elements(self, *, frame, frame_1, start_command):
+        """create frame 2 and 3"""
+
         self.param_frame = ParamFrame(frame, start_command)
         self.info_frame = InfoFrame(frame, param_frame=self.param_frame)
         self.lineplot_frame = LinePlotFrame(frame, d=None)
@@ -264,6 +259,8 @@ class FootDataOperatingPlatform(tk.Tk):
             self.info_frame.grid(row=0, column=4, padx=100, sticky='W', pady=100)
 
     def create_historyFrame_elements(self):
+        """create frame 4"""
+
         def user_selec_cmd(event):
             projectName = self.history_param_frame.project.get()
             userName = self.history_param_frame.user_name.get()
@@ -293,14 +290,15 @@ class FootDataOperatingPlatform(tk.Tk):
         self.history_lineplot_frame.place(relx=0.01, rely=0.08, relwidth=0.99, relheight=0.99)
 
     def gui_size(self):
-        ws = self.winfo_screenwidth()
-        hs = self.winfo_screenheight()
+        ws = self.winfo_screenwidth()  # 螢幕寬度
+        hs = self.winfo_screenheight()  # 螢幕高度
         return f'{int(ws * 0.99)}x{int(hs * 2.1 // 3)}'
 
-    def back(self):
+    def back(self):  # back to initial frame "frame 1"
         self.state('normal')
         self.frame_0.tkraise()
         self.frame_1.tkraise()
+
 
 if __name__ == '__main__':
     root = tk.Tk()

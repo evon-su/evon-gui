@@ -13,22 +13,27 @@ def cal_fft(series, period):
 
     return fft_list, fft_abs, fk, fs
 
-def cal_fft_series(series):
-    N = len(series)
-    fft_list = np.fft.fft(series)[: N//2]
-    fft_abs = abs(fft_list)
-    # fs = N / series.index[-1]
-    # fk = np.arange(N) / period
-
-    return fft_abs
+# def cal_fft_series(series):
+#     N = len(series)
+#     fft_list = np.fft.fft(series)[: N//2]
+#     fft_abs = abs(fft_list)
+#     # fs = N / series.index[-1]
+#     # fk = np.arange(N) / period
+#
+#     return fft_abs
 
 def cal_rpm(series, period):
+    """
+    Input: 壓力數列(series)與時間秒數(period)
+    Output:  RPM
+    """
     fft_list, fft_abs, fk, fs = cal_fft(series, period)
     fft_freq = fk[fft_abs[1:].argmax() + 1] * 60
 
     return fft_freq
 
 def get_user_names():
+    """從user.csv檔中取出user name"""
     user_names = []
     with open('files/user.csv', 'r') as f:
         for row in csv.reader(f):
@@ -37,11 +42,18 @@ def get_user_names():
     return user_names
 
 def get_project_names():
+    """從projectName.csv檔中取出project name"""
     project_names = []
     with open('files/projectName.csv', 'r') as f:
         for row in csv.reader(f):
             project_names.append(row[0].upper())
     return project_names
+
+def get_AB():
+    """從AB.txt擷取A,B參數"""
+    with open('files/AB.txt', 'r') as f:
+        params = f.readline().strip('\n').split(',')
+    return float(params[0]), float(params[1])
 
 def get_YlOrRd():
     colormap_int = np.zeros((256, 3), np.uint8)
@@ -70,7 +82,7 @@ def read_YlOrRd():
 
 
 if __name__ == '__main__':
-    read_YlOrRd()
+    get_AB()
 
 
 

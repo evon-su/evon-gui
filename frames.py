@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from func import read_YlOrRd, get_user_names, get_project_names, cal_fft_series
+from func import read_YlOrRd, get_user_names, get_project_names, cal_fft_series, get_AB
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
@@ -194,6 +194,7 @@ class IllustratedFrame(tk.Frame):
         self.canvas_foot.create_image(20,15, anchor='nw', image=self.photo_img)
         self.canvas_foot.grid(row=0, column=0)
 
+        # 左腳六個位置坐標
         self.center_radius_list = [(240, 170, 20),
                                    (190, 172, 20),
                                    (140, 175, 20),
@@ -218,15 +219,14 @@ class IllustratedFrame(tk.Frame):
 
         while self.d.is_run:
             count += 1
+            # 依壓力大小改變顏色
             for i, (cx, cy, r) in enumerate(self.center_radius_list):
                 left_ = self.canvas_foot.create_oval(
                     cx - r, cy - r, cx + r, cy + r,
-                    #fill="#%02x%02x%02x" % (255 - int(255*self.d.da_contain[i+2]/0.8), 255 - int(255*self.d.da_contain[i+2]/0.8), 255), outline='white'
                     fill="#%02x%02x%02x" % self.get_rgb_from_cmap(self.d.da_contain[i+2]), outline='white'
                 )
                 right_ = self.canvas_foot.create_oval(
                     (640 - cx + r), cy - r, 640 - cx - r, cy + r,
-                    #fill="#%02x%02x%02x" % (255 - int(255*self.d.da_contain[i+8]/0.8), 255 - int(255*self.d.da_contain[i+8]/0.8), 255), outline='white'
                     fill="#%02x%02x%02x" % self.get_rgb_from_cmap(self.d.da_contain[i+8]), outline='white'
                 )
 
@@ -238,7 +238,6 @@ class IllustratedFrame(tk.Frame):
                 self.canvas_foot.delete(time_ball)
                 time_ball = self.canvas_foot.create_rectangle(
                     0, 410, self.d.da_contain[1] * 640 / self.d.max_runtime + 10, 425,
-                    #self.circle_to_coord(self.d.da_contain[1] * 640 / self.d.max_runtime, 410, 12),
                     fill='royalblue', outline='white'
                 )
             sleep(0.1)
@@ -324,7 +323,7 @@ class HistoryParamFrame(tk.Frame):
         super().__init__(container)
         self.frame_1 = frame_1
 
-        # Tk variable 暫時複製 ParmaFrame
+        # Tk variable
         self.user_name = tk.StringVar()
         self.date = tk.StringVar()
         self.project = tk.StringVar()
@@ -346,12 +345,10 @@ class HistoryParamFrame(tk.Frame):
         self.user_dropdown = ttk.Combobox(self, values=get_user_names(),
                                           textvariable=self.user_name)
 
-
         # date
         self.date_label = ttk.Label(self, text='Date : ')
         self.date_label.config(font=('Georgia 13'))
-        self.date_dropdown = ttk.Combobox(self, values=self.get_dates(),
-                                          textvariable=self.date)
+        self.date_dropdown = ttk.Combobox(self, textvariable=self.date)
 
         # project
         self.project_label = ttk.Label(self, text='Project* : ')
@@ -406,18 +403,6 @@ class HistoryParamFrame(tk.Frame):
         self.time_init_entry.grid(row=1, column=8, padx=(10,0))
         self.time_end_entry.grid(row=1, column=9)
 
-    def get_dates(self, user=None, project=None, info=None):
-        pass
-
-    def get_schema_names(self):
-        '''
-            SELECT datname
-            FROM pg_database
-            WHERE schema
-            AND datistemplate = false
-            ;
-        '''
-
 
 class HistoryLinePlotFrame(tk.Frame):
     def __init__(self, container):
@@ -425,22 +410,30 @@ class HistoryLinePlotFrame(tk.Frame):
 
         self.scrollableFrame = ScrollableFrame(self)
 
+        # initialize variables
         self.fig = None
         self.canvas = None
         self.canvas_widget = None
 
         self.scrollableFrame.pack(fill=tk.X)
 
+        # variables and parameters
         self.time_init = None
         self.time_end = None
+        self.A, self.B = get_AB()  # using "AB.txt" file to get A, B parameters
 
     # def makeAndPutFigs(self, tableNames):
     #     for tableName in tableNames:
     #         self.fig = self.makeOneFig(tableName)
     #         self.putFig(self.fig)
 
-    def makeOneFig(self, title, data, info, exact_run_time, show='Raw Plot', figsize=(20, 2.8),
-                   A=1, B=-1.84):
+    def makeOneFig(self, title, data, info, exact_run_time, show='Raw Plot', figsize=(20, 2.8)):
+        """
+          we should input the correct 'A' and 'B' parameter.
+          Here HAVN'T been input the correct parameter!!!
+          A: slope, B: intercept
+        """
+
         colors = ['maroon', 'indianred', 'goldenrod', 'gold', 'royalblue', 'darkblue',
                   'forestgreen', 'limegreen']
         num_sensors_per_foot = (data.shape[1] - 2) // 2
@@ -458,8 +451,8 @@ class HistoryLinePlotFrame(tk.Frame):
                 ax2.set_ylabel('Amplitude')
 
             elif show == 'Pressure Plot':
-                ax1.plot(t, data.loc[self.time_init:self.time_end, i+2].apply(lambda x: 10**((x-B)/A)), label=f'a{i}', color=color)
-                ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2].apply(lambda x: 10**((x-B)/A)), label=f'a{i+num_sensors_per_foot}', color=color)
+                ax1.plot(t, data.loc[self.time_init:self.time_end, i+2].apply(lambda x: 10**((x-self.B)/self.A)), label=f'a{i}', color=color)
+                ax2.plot(t, data.loc[self.time_init:self.time_end, i+num_sensors_per_foot+2].apply(lambda x: 10**((x-self.B)/self.A)), label=f'a{i+num_sensors_per_foot}', color=color)
                 ax1.set_ylabel('Pressure (kPa)')
                 ax2.set_ylabel('Pressure (kPa)')
 
@@ -473,6 +466,7 @@ class HistoryLinePlotFrame(tk.Frame):
                 ax2.plot(fk, data2.iloc[1:, i + num_sensors_per_foot],
                          label=f'a{i + num_sensors_per_foot}', color=color)
 
+        # define scale
         if show == 'Pressure Plot':
             pressure_scale = 400  # setting pressure scale***
             ax1.set_ylim(0, pressure_scale)
@@ -486,11 +480,8 @@ class HistoryLinePlotFrame(tk.Frame):
         fig.suptitle(title + '   :   "  ' + info.strip('\n') + ' ( ' + exact_run_time + ' s )  "')
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper left')
-
         ax1.grid()
         ax2.grid()
-        # ax1.table(cellText=[[1,2,3], [4,5,6]], rowLabels=['a','b'], colLabels=['d','e','f'], loc='best', colWidths=[0.1]*3)
-        # ax2.table(cellText=[[1,2,3], [4,5,6]], rowLabels=['a','b'], colLabels=['d','e','f'], loc='best', colWidths=[0.1]*3)
 
         return fig
 
@@ -505,17 +496,9 @@ class HistoryLinePlotFrame(tk.Frame):
         self.nextPageButton.pack(side=tk.TOP, anchor='e', expand=True, fill='x', pady=20)
 
 
-class HistoryFftPlotFrame(tk.Frame):
-    def __init__(self, container):
-        super().__init__(container)
-
-
-class HistoryTableFrame(tk.Frame):
-    def __init__(self, container):
-        super().__init__(container)
-
-
 class ScrollableFrame(tk.Frame):
+    """to create scrollable frame (code from internet)"""
+
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
         canvas = tk.Canvas(self, width=210, height=920)

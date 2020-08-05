@@ -57,8 +57,10 @@ class Daq:
         self.da_contain = None
 
     def init_arduino(self):
-        """init arduino and dqs, and write information into into"""
+        """init arduino and dqs, and write information into info table"""
+
         self.tableName = self.create_db_table()
+
         # write project information into 'info' table
         self.cursor.execute(f"""
             INSERT INTO {self.project_name}.info (table_name, timestamp, info, project_name, user_name,
@@ -66,28 +68,36 @@ class Daq:
             VALUES ('{self.tableName}', '{datetime.now()}', '{self.project_info}', '{self.project_name}', '{self.user_name}',
                     '{self.num_sensors}', '{self.sr}', '{self.max_runtime}');
         """)
+
+        # start arduino
         self.it1.start()
-        # self.it2.start()
+
+        # get pins
         for i in range(self.num_sensors):
             self.pins1.append(self.uno1.get_pin(f'a:{i}:i'))
-            # self.pins2.append(self.uno2.get_pin(f'a:{i}:i'))
         for i in range(self.num_sensors*2 + 2):
             self.dqs.append(deque([0 for i in range(self.dqs_len)], maxlen=self.dqs_len))
+
+        # get t0
         self.t0 = datetime.now()
 
         # create csv file
         if self.save_to_csv:
-            with open(f'./data/{self.tableName}.csv', 'w') as f:
+            with open(f'./data/{self.tableName}.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['timestamp', 'interval(s)'] + [f'volt_{i}' for i in range(self.num_sensors)])
 
     def read_arduino(self):
-        """da_contain for sql and append to dqs"""
+        """
+          get "da_contain", save to sql, and append to dqs
+          da_contain = [timestamp, interval, volt_0 ~ volt_n]
+        """
+
         da_contain = []
         t = datetime.now()
         p = (datetime.now() - self.t0).total_seconds()
-        da_contain.append(t)
-        da_contain.append(p)
+        da_contain.append(t)  # timestamp
+        da_contain.append(p)  # interval
         self.dqs[0].append(t)
         self.dqs[1].append(p)
         for i in range(self.num_sensors):
@@ -99,13 +109,14 @@ class Daq:
 
         # save to csv file
         if self.save_to_csv:
-            with open(f'./data/{self.tableName}.csv', 'a') as f:
+            with open(f'./data/{self.tableName}.csv', 'a', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(da_contain)
 
         return da_contain
 
     def save_to_db(self, da_contain):
+        """save "da_contain" to database"""
         if len(da_contain) == self.num_sensors + 2:
             data = [str(s) for s in da_contain[2:]]  # list
             data = ', '.join(data)  # string
@@ -129,13 +140,15 @@ class Daq:
             if self.da_contain[1] >= self.max_runtime:
                 self.close()
                 break
-            self.save_to_db(self.da_contain)
+            self.save_to_db(self.da_contain)  # save data
+
+            # print information in the console
             if i % 100 == 0:
                 self.conn.commit()
                 print(f'i={i} has been saved')
                 print(self.da_contain)
 
-            time__ += self.interval
+            time__ += self.interval  # the next time to save data
             i += 1
 
         else:
@@ -144,6 +157,8 @@ class Daq:
     def close(self, save=True):
         self.is_run = False
         exact_run_time = self.dqs[1][-1]
+
+        # save exact_run_time to database
         self.cursor.execute(f"""
             UPDATE {self.project_name}.info
             SET exact_run_time = '{exact_run_time}'
@@ -161,7 +176,9 @@ class Daq:
 
     def create_db_table(self):
         """create table and return tableName"""
+
         sql_str = self.col_name(self.num_sensors, 'sql')
+
         # create info table
         self.cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {self.project_name}.info
@@ -184,12 +201,13 @@ class Daq:
 
         # create table
         for i in range(self.max_tb):
-            tbn = f'{user_name}_{self.toDay}_{i+1:02d}'
+            tbn = f'{user_name}_{self.toDay}_{i+1:02d}'  # tableName
+
             # check table exist or not
             self.cursor.execute(f"""
                 SELECT EXISTS (
                     SELECT * FROM information_schema.tables
-                    WHERE table_schema='{self.project_name}' AND table_name = '{tbn}'
+                    WHERE table_schema='{self.project_name.lower()}' AND table_name = '{tbn}'
                 )
             """)
             b = self.cursor.fetchone()  # (True or False, )
@@ -198,6 +216,7 @@ class Daq:
                 continue
             elif not b[0]:
                 try:
+                    # create table
                     self.cursor.execute(f"""
                         CREATE TABLE {self.project_name}.{tbn} (timestamp timestamp,
                                                                 interval real,
@@ -207,6 +226,7 @@ class Daq:
                     tableName = tbn
                     print(f"'{self.project_name}.{tableName}' has been created")
                     return tableName
+
                 except Exception as e:
                     print('exception: ', e)
                     print('table is fulled...')
@@ -214,6 +234,8 @@ class Daq:
     def plot_dqs(self, axes, ylim=0.9):
         axes[0].clear()
         axes[1].clear()
+
+        # plot
         for plot_i in range(self.num_sensors // 2):
             axes[0].plot(self.dqs[1], self.dqs[plot_i+2], lw=1, label=f'a{plot_i}', marker=None)
 
@@ -227,7 +249,6 @@ class Daq:
         plt.pause(0.01)
 
     def start_plot(self):
-        #end = self.t0.total_seconds + max_play_time
         fig, axes = plt.subplots(2, 1, figsize=(15, 6))
         plt.ion()
         while self.is_run:
@@ -236,7 +257,7 @@ class Daq:
         plt.show()
 
     def main(self):
-        """main program"""
+        """main program (only for """
         # 2 threading
         th1 = threading.Thread(target=self.start_read_and_save)  # read arduino and save to sql
         th2 = threading.Thread(target=self.start_plot)  # plot instant curve
@@ -245,14 +266,12 @@ class Daq:
         th2.start()
         sleep(self.max_runtime)  # run_time
         self.is_run = False
-        # th1.join()
-        # th2.join()
 
     def real_time_rpm(self):
+        """calculate RPM to self.fft_freq and print in the console"""
         sleep(3)
         while self.is_run:
             self.fft_freq = cal_rpm(self.dqs[2], self.plot_second)
-            # self.rpm.set(round(f, 1))
             print('--', self.fft_freq, '--')
             sleep(2)
 
@@ -267,39 +286,27 @@ class Daq:
         return col_str
 
 
-class User:
-    @classmethod
-    def create_user(cls, user_name):
-        """create user to user.csv"""
-        exist_user = cls.check_user()
-        if user_name.upper() not in exist_user:
-            with open('user.csv', 'a') as f:
-                f.write(f'{user_name.upper()}\n')
-                print(f'{user_name} has been written to user.csv')
-        else:
-            print(f'{user_name} has been existed')
+# class User:
+#     @classmethod
+#     def create_user(cls, user_name):
+#         """create user to user.csv"""
+#         exist_user = cls.check_user()
+#         if user_name.upper() not in exist_user:
+#             with open('user.csv', 'a') as f:
+#                 f.write(f'{user_name.upper()}\n')
+#                 print(f'{user_name} has been written to user.csv')
+#         else:
+#             print(f'{user_name} has been existed')
+#
+#     @classmethod
+#     def check_user(cls):
+#         exist_user = set()
+#         with open('user.csv', 'r') as f:
+#             for line in f.readlines():
+#                 l0 = line.strip('\n')
+#                 exist_user.add(l0)
+#         return exist_user
 
-    @classmethod
-    def check_user(cls):
-        exist_user = set()
-        with open('user.csv', 'r') as f:
-            for line in f.readlines():
-                l0 = line.strip('\n')
-                exist_user.add(l0)
-        return exist_user
-
-class SqlCommand:
-    # get schema and table names
-    getSchemaAndTableNames = '''
-        SELECT table_schema, table_name
-        FROM information_schema.tables
-        WHERE table_schema = 'resist_speed'
-        ORDER BY table_schema, table_name;
-    '''
-
-
-    def __init__(self):
-        pass
 
 
 if __name__ == '__main__':
