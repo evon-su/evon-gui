@@ -21,11 +21,12 @@
 * 程式架構
 
 分成底層與上層模組，底層模組包含
-a. arduino_to_sql_3: 進行Arduino感測數據擷取、儲存至資料庫、以及傅立葉計算
-b. data: 歷史資料庫讀取，以及數據校正計算
-c. frames: GUI介面之各個Frame物件設計與功能
-f. func: 相關使用函數
-上層模組為gui，負責功能調用與控制
+a. arduino_to_sql_3: 進行Arduino感測數據擷取、儲存至資料庫、以及傅立葉計算。
+b. data: 歷史資料庫讀取，以及數據校正計算。
+c. frames: GUI介面之各個Frame物件設計與功能。
+f. func: 相關使用函數。
+
+上層模組為gui，負責功能調用與控制。
 
 
 * 調用接口為 app.py
