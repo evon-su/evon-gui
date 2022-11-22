@@ -28,7 +28,7 @@ matplotlib==3.2.1
 networkx==2.4
 numpy==1.18.2
 pandas==1.0.3
-Pillow==7.1.2
+Pillow==9.3.0
 plotly==4.7.1
 psycopg2==2.8.4
 pyFirmata==1.1.0
