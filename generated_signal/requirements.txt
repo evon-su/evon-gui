@@ -47,5 +47,5 @@ tifffile==2020.6.3
 ua-parser==0.10.0
 urllib3==1.25.9
 virtualenv==20.0.23
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 zipp==3.1.0
