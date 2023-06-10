@@ -3,7 +3,7 @@
 * 前言：
 
   這個GUI介面是一個整合平台，包含：Arduino感測數據即時擷取、數據即時視覺化呈現(電壓line plot及即時頻率)、數據儲存至SQL資料庫、以及後續之資料庫讀取功能。
-是自學Python兩年後，從零開始設計與實現出的專案
+是自學Python之早期，從零開始設計與實現出的專案
 https://drive.google.com/file/d/1d9gAYcyEb2PYeNsidIf4bXMx22luTeil/view?usp=share_link
 
 
